@@ -63,21 +63,21 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            arch: x86_64
-          - os: ubuntu-24.04-arm
-            arch: aarch64
-          - os: windows-latest
+          # - os: ubuntu-latest
+          #   arch: x86_64
+          # - os: ubuntu-24.04-arm
+          #   arch: aarch64
+          # - os: windows-latest
           - os: self-hosted
             arch: ppc64le
-          - os: windows-latest
-            arch: AMD64
-          - os: windows-11-arm
-            arch: ARM64
-          - os: macos-14 # keep in sync with cibuildwheel.overrides
-            arch: arm64
-          - os: macos-15-intel # keep in sync with cibuildwheel.overrides
-            arch: x86_64
+          # - os: windows-latest
+          #   arch: AMD64
+          # - os: windows-11-arm
+          #   arch: ARM64
+          # - os: macos-14 # keep in sync with cibuildwheel.overrides
+          #   arch: arm64
+          # - os: macos-15-intel # keep in sync with cibuildwheel.overrides
+          #   arch: x86_64
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
@@ -105,7 +105,7 @@ jobs:
       - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
         with:
           python-version: 3.12
-        if: runner.os == 'ppc64le'
+        
       - run: bash ./ci/cibw_before_all_windows.sh "${{ github.workspace }}"
         env:
           ARCH: ${{ matrix.arch }}
