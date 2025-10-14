@@ -118,9 +118,61 @@ jobs:
       # For ppc64le self-hosted runners, ensure Python and pip are available
       - name: Setup Python for ppc64le
         run: |
-          python3 --version
-          pip3 --version
-          python3 -m pip install --upgrade pip setuptools wheel
+          # Try different Python commands and paths to find what's available
+          PYTHON_CMD=""
+          PIP_CMD=""
+          
+          # Check common Python commands
+          for cmd in python3.12 python3.11 python3.10 python3 python; do
+            if command -v $cmd >/dev/null 2>&1; then
+              PYTHON_CMD=$cmd
+              echo "Found Python: $PYTHON_CMD"
+              break
+            fi
+          done
+          
+          # Check common Python paths if commands not found
+          if [ -z "$PYTHON_CMD" ]; then
+            for path in /usr/bin/python3 /usr/local/bin/python3 /opt/python*/bin/python3; do
+              if [ -x "$path" ]; then
+                PYTHON_CMD=$path
+                echo "Found Python at: $PYTHON_CMD"
+                break
+              fi
+            done
+          fi
+          
+          if [ -z "$PYTHON_CMD" ]; then
+            echo "Error: No Python found. Please install Python 3.11+ on the self-hosted runner."
+            echo "Try: sudo dnf install python3 python3-pip python3-devel"
+            echo "Or: sudo apt install python3 python3-pip python3-dev"
+            exit 1
+          fi
+          
+          echo "Using Python: $PYTHON_CMD"
+          $PYTHON_CMD --version
+          
+          # Find pip
+          for cmd in pip3 pip "$PYTHON_CMD -m pip"; do
+            if eval "$cmd --version" >/dev/null 2>&1; then
+              PIP_CMD=$cmd
+              echo "Found pip: $PIP_CMD"
+              break
+            fi
+          done
+          
+          if [ -z "$PIP_CMD" ]; then
+            echo "Installing pip..."
+            curl https://bootstrap.pypa.io/get-pip.py | $PYTHON_CMD
+            PIP_CMD="$PYTHON_CMD -m pip"
+          fi
+          
+          # Upgrade pip, setuptools, and wheel
+          eval "$PIP_CMD install --upgrade pip setuptools wheel"
+          
+          # Export for later steps
+          echo "PYTHON_CMD=$PYTHON_CMD" >> $GITHUB_ENV
+          echo "PIP_CMD=$PIP_CMD" >> $GITHUB_ENV
         if: matrix.arch == 'ppc64le'
 
       # Triage build
@@ -136,6 +188,8 @@ jobs:
           CIBW_BUILD: "${{ matrix.arch == 'ppc64le' && 'cp3*' || '' }}"
           # Skip problematic builds for ppc64le
           CIBW_SKIP: "${{ matrix.arch == 'ppc64le' && 'cp314t-* pp*' || 'cp314t-*' }}"
+          # Help cibuildwheel find Python on ppc64le systems
+          CIBW_ENVIRONMENT_PASS_LINUX: "${{ matrix.arch == 'ppc64le' && 'PATH PYTHONPATH' || '' }}"
 
       - run: python ./ci/bundle_hdf5_whl.py wheelhouse
         if: runner.os == 'Windows'
