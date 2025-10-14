@@ -115,6 +115,14 @@ jobs:
       - run: bash ./ci/cibw_before_all_macos.sh "${{ github.workspace }}"
         if: runner.os == 'macOS'
 
+      # For ppc64le self-hosted runners, ensure Python and pip are available
+      - name: Setup Python for ppc64le
+        run: |
+          python3 --version
+          pip3 --version
+          python3 -m pip install --upgrade pip setuptools wheel
+        if: matrix.arch == 'ppc64le'
+
       # Triage build
       - run: bash ./ci/triage_build.sh "${{ matrix.arch }}" "${{ github.event.pull_request.head.sha || github.sha }}"
 
@@ -122,6 +130,12 @@ jobs:
       - uses: pypa/cibuildwheel@9c00cb4f6b517705a3794b22395aedc36257242c # v3.2.1
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
+          # For ppc64le, disable containers and build natively
+          CIBW_CONTAINER_ENGINE: "${{ matrix.arch == 'ppc64le' && 'disabled' || 'auto' }}"
+          # Use only Python versions available on the system for ppc64le
+          CIBW_BUILD: "${{ matrix.arch == 'ppc64le' && 'cp3*' || '' }}"
+          # Skip problematic builds for ppc64le
+          CIBW_SKIP: "${{ matrix.arch == 'ppc64le' && 'cp314t-* pp*' || 'cp314t-*' }}"
 
       - run: python ./ci/bundle_hdf5_whl.py wheelhouse
         if: runner.os == 'Windows'
