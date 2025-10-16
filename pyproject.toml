@@ -167,6 +167,14 @@ select = "cp3*-macosx_x86_64"
 inherit.environment = "append"
 environment = {"MACOSX_DEPLOYMENT_TARGET" = "15.0"}
 
+# ppc64le-specific configuration
+[[tool.cibuildwheel.overrides]]
+select = "cp3*-linux_ppc64le"
+# For self-hosted runners, disable containers and build natively
+container-engine = "disabled"
+# Skip problematic builds
+skip = ["cp314t-*", "pp*"]
+
 [tool.uv]
 # never build numpy from source
 no-build-package = ["numpy"]
