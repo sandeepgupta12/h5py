@@ -196,7 +196,6 @@ jobs:
         
         env:
           CIBW_PRERELEASE_PYTHONS: True
-          CIBW_FREE_THREADED_SUPPORT: True
           CIBW_ARCHS: "ppc64le"
           CIBW_BUILD: "${{ matrix.arch == 'ppc64le' && 'cp3*' || '' }}"
           CIBW_CONTAINER_PRIVILEGED: true
