@@ -125,6 +125,13 @@ jobs:
       - uses: pypa/cibuildwheel@9c00cb4f6b517705a3794b22395aedc36257242c # v3.2.1
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
+          # For ppc64le self-hosted runners, use system Python and bypass version management
+          CIBW_BUILD: "${{ matrix.arch == 'ppc64le' && 'cp3*' || '' }}"
+          CIBW_SKIP: "${{ matrix.arch == 'ppc64le' && 'cp314t-*' || '' }}"
+          # Tell cibuildwheel to use the Python that's already available
+          CIBW_ENVIRONMENT_PASS_LINUX: "${{ matrix.arch == 'ppc64le' && 'PATH PYTHONPATH LD_LIBRARY_PATH PKG_CONFIG_PATH PYTHON' || '' }}"
+          # For ppc64le, don't try to manage Python versions
+          CIBW_PRERELEASE_PYTHONS: "${{ matrix.arch == 'ppc64le' && 'false' || '' }}"
 
       - run: python ./ci/bundle_hdf5_whl.py wheelhouse
         if: runner.os == 'Windows'
