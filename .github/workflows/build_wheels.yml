@@ -134,70 +134,27 @@ jobs:
           CIBW_PRERELEASE_PYTHONS: "${{ matrix.arch == 'ppc64le' && 'false' || '' }}"
         if: matrix.arch != 'ppc64le'
 
-      # Manual wheel building for ppc64le to avoid setup-python issues
-      - name: Build wheels manually for ppc64le
-        run: |
-          echo "Building wheels manually for ppc64le..."
-          
-          # Ensure pip is available
-          if ! python3 -m pip --version 2>/dev/null; then
-            echo "Installing pip..."
-            # Try different methods to get pip
-            if command -v apt-get &> /dev/null; then
-              sudo apt-get update && sudo apt-get install -y python3-pip
-            elif command -v dnf &> /dev/null; then
-              sudo dnf install -y python3-pip
-            elif command -v yum &> /dev/null; then
-              sudo yum install -y python3-pip
-            else
-              # Download and install pip manually
-              curl https://bootstrap.pypa.io/get-pip.py | python3
-            fi
-          fi
-          
-          # Verify pip is working
-          python3 -m pip --version
-          
-          # Install required packages for wheel building
-          python3 -m pip install --upgrade pip wheel build auditwheel
-          
-          # Install build dependencies
-          python3 -m pip install "Cython>=3.0.0,<4" "numpy>=1.25.0,<3" "pkgconfig>=1.5.5" "setuptools>=77.0.1"
-          
-          # Install HDF5 development libraries if not already installed
-          if ! pkg-config --exists hdf5 2>/dev/null; then
-            echo "Installing HDF5 development libraries..."
-            if command -v apt-get &> /dev/null; then
-              sudo apt-get update && sudo apt-get install -y libhdf5-dev pkg-config
-            elif command -v dnf &> /dev/null; then
-              sudo dnf install -y hdf5-devel pkgconfig
-            elif command -v yum &> /dev/null; then
-              sudo yum install -y hdf5-devel pkgconfig
-            fi
-          fi
-          
-          # Verify HDF5 is available
-          pkg-config --exists hdf5 && echo "HDF5 found" || echo "Warning: HDF5 not found via pkg-config"
-          
-          # Build the wheel
-          echo "Building wheel..."
-          python3 -m build --wheel
-          
-          # Create wheelhouse directory
-          mkdir -p wheelhouse
-          
-          # Repair the wheel with auditwheel (or copy if repair fails)
-          for wheel in dist/*.whl; do
-            if [ -f "$wheel" ]; then
-              echo "Processing wheel: $wheel"
-              auditwheel repair "$wheel" --wheel-dir wheelhouse/ || cp "$wheel" wheelhouse/
-            fi
-          done
-          
-          # Verify wheels were created
-          echo "Created wheels:"
-          ls -la wheelhouse/
+      # cibuildwheel for ppc64le using docker and venv
+      - name: Build wheels for ppc64le
         if: matrix.arch == 'ppc64le'
+        env:
+          CIBW_PRERELEASE_PYTHONS: True
+          CIBW_FREE_THREADED_SUPPORT: True
+          CIBW_ARCHS: "ppc64le"
+          CIBW_BUILD: "cp3*"
+          CIBW_CONTAINER_ENGINE: docker
+          CIBW_CONTAINER_PRIVILEGED: true
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3.12 python3.12-dev python3.12-venv python3.12-pip
+          sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
+          sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1
+          python3 --version 
+          export PATH=$HOME/.local/bin:$PATH
+          python3 -m venv venv
+          source venv/bin/activate
+          python3 -m pip install cibuildwheel
+          cibuildwheel
 
       - run: python ./ci/bundle_hdf5_whl.py wheelhouse
         if: runner.os == 'Windows'
