@@ -230,11 +230,16 @@ jobs:
             echo "Installing HDF5 for native build..."
             sudo apt-get install -y libhdf5-dev pkg-config
             
-            # Force cibuildwheel to build natively by unsetting container images
+            # Force cibuildwheel to build natively
             echo "Configuring cibuildwheel for native builds..."
-            export CIBW_MANYLINUX_PPC64LE_IMAGE=""
-            export CIBW_MUSLLINUX_PPC64LE_IMAGE=""
-            export CIBW_CONTAINER_ENGINE=""
+            export CIBW_BUILD_FRONTEND="build"
+            # Remove any container-related environment variables
+            unset CIBW_CONTAINER_ENGINE
+            unset CIBW_MANYLINUX_PPC64LE_IMAGE
+            unset CIBW_MUSLLINUX_PPC64LE_IMAGE
+            # Force native builds by disabling manylinux altogether
+            export CIBW_SKIP="*musllinux* *manylinux*"
+            export CIBW_BUILD="cp3*-linux_ppc64le"
           fi
           
           # Run cibuildwheel
