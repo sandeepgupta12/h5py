@@ -158,16 +158,26 @@ jobs:
             if command -v systemctl &> /dev/null; then
               sudo systemctl start docker
               sudo systemctl enable docker
+              # Wait for Docker to be ready
+              sleep 3
             elif command -v service &> /dev/null; then
               sudo service docker start
+              sleep 3
             else
-              # Try to start dockerd directly
-              sudo dockerd &
-              sleep 5
+              # Try to start dockerd directly in background
+              echo "Starting dockerd directly..."
+              sudo dockerd > /tmp/dockerd.log 2>&1 &
+              DOCKERD_PID=$!
+              echo "Docker daemon started with PID: $DOCKERD_PID"
+              sleep 10
+              echo "Docker daemon log:"
+              tail -20 /tmp/dockerd.log || true
             fi
             
+            # Add user to docker group and make socket accessible
             sudo usermod -aG docker $USER
-            echo "Docker installed."
+            sudo chmod 666 /var/run/docker.sock || true
+            echo "Docker installed and configured."
           fi
           
           # Install Python packages
@@ -183,25 +193,35 @@ jobs:
           python3 -m pip install cibuildwheel
           
           # Test Docker access (try multiple approaches)
-          DOCKER_WORKS=false
+          NATIVE_BUILD=false
+          
+          echo "Testing Docker access..."
+          echo "Docker version:"
+          docker --version || true
+          echo "Docker info:"
+          docker info || sudo docker info || true
+          echo "Docker socket permissions:"
+          ls -la /var/run/docker.sock || true
           
           # Try regular docker command
           if docker ps &> /dev/null; then
-            DOCKER_WORKS=true
-            echo "Docker is working with current user"
+            echo "✓ Docker is working with current user"
           # Try with sudo
           elif sudo docker ps &> /dev/null; then
-            echo "Docker requires sudo access"
+            echo "✓ Docker requires sudo access - setting up wrapper"
             # Set up Docker wrapper for sudo access
             echo '#!/bin/bash' | sudo tee /usr/local/bin/docker-sudo > /dev/null
             echo 'sudo docker "$@"' | sudo tee -a /usr/local/bin/docker-sudo > /dev/null
             sudo chmod +x /usr/local/bin/docker-sudo
             export PATH="/usr/local/bin:$PATH"
             alias docker=docker-sudo
-            DOCKER_WORKS=true
+            echo "Docker wrapper configured"
           else
-            echo "Docker access failed. Switching to native build mode..."
-            # Don't set CIBW_CONTAINER_ENGINE - let cibuildwheel auto-detect
+            echo "✗ Docker access failed - switching to native build mode"
+            echo "Docker daemon status:"
+            sudo systemctl status docker || sudo service docker status || echo "No service manager available"
+            echo "Processes:"
+            ps aux | grep docker || true
             NATIVE_BUILD=true
           fi
           
