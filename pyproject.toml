@@ -176,7 +176,7 @@ skip = ["cp314t-*", "pp*"]
 build = "cp3*"
 # Set environment to help find system libraries and HDF5
 environment = { 
-    PATH = "/usr/local/bin:/usr/bin:/bin:$PATH", 
+    PATH = "/usr/local/bin:/usr/bin:/bin", 
     PKG_CONFIG_PATH = "/usr/lib64/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:/usr/lib/powerpc64le-linux-gnu/pkgconfig",
     HDF5_DIR = "/usr",
     HDF5_INCLUDEDIR = "/usr/include/hdf5/serial",
