@@ -170,14 +170,18 @@ environment = {"MACOSX_DEPLOYMENT_TARGET" = "15.0"}
 # ppc64le-specific configuration
 [[tool.cibuildwheel.overrides]]
 select = "cp3*-linux_ppc64le"
-# For self-hosted runners, disable containers and build natively
-container-engine = "disabled"
 # Skip problematic builds
 skip = ["cp314t-*", "pp*"]
 # Use system Python - don't try to install specific versions
 build = "cp3*"
-# Set environment to help find system libraries
-environment = { PATH = "/usr/local/bin:/usr/bin:/bin:$PATH", PKG_CONFIG_PATH = "/usr/lib64/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig" }
+# Set environment to help find system libraries and HDF5
+environment = { 
+    PATH = "/usr/local/bin:/usr/bin:/bin:$PATH", 
+    PKG_CONFIG_PATH = "/usr/lib64/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:/usr/lib/powerpc64le-linux-gnu/pkgconfig",
+    HDF5_DIR = "/usr",
+    HDF5_INCLUDEDIR = "/usr/include/hdf5/serial",
+    HDF5_LIBDIR = "/usr/lib/powerpc64le-linux-gnu/hdf5/serial"
+}
 
 [tool.uv]
 # never build numpy from source
