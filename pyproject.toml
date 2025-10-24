@@ -175,13 +175,7 @@ skip = ["cp314t-*", "pp*"]
 # Use system Python - don't try to install specific versions
 build = "cp3*"
 # Set environment to help find system libraries and HDF5
-environment = { 
-    PATH = "/usr/local/bin:/usr/bin:/bin", 
-    PKG_CONFIG_PATH = "/usr/lib64/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:/usr/lib/powerpc64le-linux-gnu/pkgconfig",
-    HDF5_DIR = "/usr",
-    HDF5_INCLUDEDIR = "/usr/include/hdf5/serial",
-    HDF5_LIBDIR = "/usr/lib/powerpc64le-linux-gnu/hdf5/serial"
-}
+environment = { PATH = "/usr/local/bin:/usr/bin:/bin", PKG_CONFIG_PATH = "/usr/lib64/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:/usr/lib/powerpc64le-linux-gnu/pkgconfig", HDF5_DIR = "/usr", HDF5_INCLUDEDIR = "/usr/include/hdf5/serial", HDF5_LIBDIR = "/usr/lib/powerpc64le-linux-gnu/hdf5/serial" }
 
 [tool.uv]
 # never build numpy from source
