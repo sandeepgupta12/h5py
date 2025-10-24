@@ -155,11 +155,21 @@ jobs:
             echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
             sudo apt-get update
             sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-            sudo systemctl start docker
-            sudo systemctl enable docker
+            
+            # Start Docker service using available service manager
+            if command -v systemctl &> /dev/null; then
+              sudo systemctl start docker
+              sudo systemctl enable docker
+            elif command -v service &> /dev/null; then
+              sudo service docker start
+            else
+              # Try to start dockerd directly
+              sudo dockerd &
+              sleep 5
+            fi
+            
             sudo usermod -aG docker $USER
-            # Need to restart or use newgrp to apply group changes
-            echo "Docker installed. You may need to restart the runner for group changes to take effect."
+            echo "Docker installed."
           fi
           
           # Install Python packages
@@ -174,12 +184,32 @@ jobs:
           source venv/bin/activate
           python3 -m pip install cibuildwheel
           
-          # Test Docker access
-          if ! docker ps &> /dev/null; then
-            echo "Docker access issue. Trying with sudo or switching to native build..."
-            # Option 1: Try with sudo (not ideal but might work)
+          # Test Docker access (try multiple approaches)
+          DOCKER_WORKS=false
+          
+          # Try regular docker command
+          if docker ps &> /dev/null; then
+            DOCKER_WORKS=true
+            echo "Docker is working with current user"
+          # Try with sudo
+          elif sudo docker ps &> /dev/null; then
+            echo "Docker requires sudo access"
+            # Set up Docker wrapper for sudo access
+            echo '#!/bin/bash' | sudo tee /usr/local/bin/docker-sudo > /dev/null
+            echo 'sudo docker "$@"' | sudo tee -a /usr/local/bin/docker-sudo > /dev/null
+            sudo chmod +x /usr/local/bin/docker-sudo
+            export PATH="/usr/local/bin:$PATH"
+            alias docker=docker-sudo
+            DOCKER_WORKS=true
+          else
+            echo "Docker access failed. Switching to native build mode..."
             export CIBW_CONTAINER_ENGINE=disabled
-            echo "Switched to native build mode (no containers)"
+          fi
+          
+          # Install HDF5 for native builds
+          if [[ "$CIBW_CONTAINER_ENGINE" == "disabled" ]]; then
+            echo "Installing HDF5 for native build..."
+            sudo apt-get install -y libhdf5-dev pkg-config
           fi
           
           # Run cibuildwheel
