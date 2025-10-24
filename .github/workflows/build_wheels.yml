@@ -201,14 +201,14 @@ jobs:
             DOCKER_WORKS=true
           else
             echo "Docker access failed. Switching to native build mode..."
-            export CIBW_CONTAINER_ENGINE=disabled
+            # Don't set CIBW_CONTAINER_ENGINE - let cibuildwheel auto-detect
+            NATIVE_BUILD=true
           fi
           
           # Install HDF5 for native builds
-          if [[ "$CIBW_CONTAINER_ENGINE" == "disabled" ]]; then
+          if [[ "$NATIVE_BUILD" == "true" ]]; then
             echo "Installing HDF5 for native build..."
             sudo apt-get install -y libhdf5-dev pkg-config
-            echo "CIBW_CONTAINER_ENGINE=disabled" >> $GITHUB_ENV
           fi
           
           # Run cibuildwheel
