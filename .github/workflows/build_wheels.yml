@@ -139,6 +139,25 @@ jobs:
         run: |
           echo "Building wheels manually for ppc64le..."
           
+          # Ensure pip is available
+          if ! python3 -m pip --version 2>/dev/null; then
+            echo "Installing pip..."
+            # Try different methods to get pip
+            if command -v apt-get &> /dev/null; then
+              sudo apt-get update && sudo apt-get install -y python3-pip
+            elif command -v dnf &> /dev/null; then
+              sudo dnf install -y python3-pip
+            elif command -v yum &> /dev/null; then
+              sudo yum install -y python3-pip
+            else
+              # Download and install pip manually
+              curl https://bootstrap.pypa.io/get-pip.py | python3
+            fi
+          fi
+          
+          # Verify pip is working
+          python3 -m pip --version
+          
           # Install required packages for wheel building
           python3 -m pip install --upgrade pip wheel build auditwheel
           
@@ -146,25 +165,37 @@ jobs:
           python3 -m pip install "Cython>=3.0.0,<4" "numpy>=1.25.0,<3" "pkgconfig>=1.5.5" "setuptools>=77.0.1"
           
           # Install HDF5 development libraries if not already installed
-          if ! pkg-config --exists hdf5; then
+          if ! pkg-config --exists hdf5 2>/dev/null; then
+            echo "Installing HDF5 development libraries..."
             if command -v apt-get &> /dev/null; then
-              sudo apt-get update && sudo apt-get install -y libhdf5-dev
+              sudo apt-get update && sudo apt-get install -y libhdf5-dev pkg-config
             elif command -v dnf &> /dev/null; then
-              sudo dnf install -y hdf5-devel
+              sudo dnf install -y hdf5-devel pkgconfig
             elif command -v yum &> /dev/null; then
-              sudo yum install -y hdf5-devel
+              sudo yum install -y hdf5-devel pkgconfig
             fi
           fi
           
+          # Verify HDF5 is available
+          pkg-config --exists hdf5 && echo "HDF5 found" || echo "Warning: HDF5 not found via pkg-config"
+          
           # Build the wheel
+          echo "Building wheel..."
           python3 -m build --wheel
           
-          # Repair the wheel with auditwheel
+          # Create wheelhouse directory
+          mkdir -p wheelhouse
+          
+          # Repair the wheel with auditwheel (or copy if repair fails)
           for wheel in dist/*.whl; do
-            auditwheel repair "$wheel" --wheel-dir wheelhouse/ || cp "$wheel" wheelhouse/
+            if [ -f "$wheel" ]; then
+              echo "Processing wheel: $wheel"
+              auditwheel repair "$wheel" --wheel-dir wheelhouse/ || cp "$wheel" wheelhouse/
+            fi
           done
           
           # Verify wheels were created
+          echo "Created wheels:"
           ls -la wheelhouse/
         if: matrix.arch == 'ppc64le'
 
