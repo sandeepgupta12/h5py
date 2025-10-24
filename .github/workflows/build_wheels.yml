@@ -139,7 +139,7 @@ jobs:
         if: matrix.arch == 'ppc64le'
         env:
           CIBW_PRERELEASE_PYTHONS: True
-          CIBW_FREE_THREADED_SUPPORT: True
+          CIBW_ENABLE: "cpython-freethreading"
           CIBW_ARCHS: "ppc64le"
           CIBW_BUILD: "cp3*"
           CIBW_CONTAINER_ENGINE: docker
