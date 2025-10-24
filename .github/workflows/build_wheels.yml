@@ -132,6 +132,41 @@ jobs:
           CIBW_ENVIRONMENT_PASS_LINUX: "${{ matrix.arch == 'ppc64le' && 'PATH PYTHONPATH LD_LIBRARY_PATH PKG_CONFIG_PATH PYTHON' || '' }}"
           # For ppc64le, don't try to manage Python versions
           CIBW_PRERELEASE_PYTHONS: "${{ matrix.arch == 'ppc64le' && 'false' || '' }}"
+        if: matrix.arch != 'ppc64le'
+
+      # Manual wheel building for ppc64le to avoid setup-python issues
+      - name: Build wheels manually for ppc64le
+        run: |
+          echo "Building wheels manually for ppc64le..."
+          
+          # Install required packages for wheel building
+          python3 -m pip install --upgrade pip wheel build auditwheel
+          
+          # Install build dependencies
+          python3 -m pip install "Cython>=3.0.0,<4" "numpy>=1.25.0,<3" "pkgconfig>=1.5.5" "setuptools>=77.0.1"
+          
+          # Install HDF5 development libraries if not already installed
+          if ! pkg-config --exists hdf5; then
+            if command -v apt-get &> /dev/null; then
+              sudo apt-get update && sudo apt-get install -y libhdf5-dev
+            elif command -v dnf &> /dev/null; then
+              sudo dnf install -y hdf5-devel
+            elif command -v yum &> /dev/null; then
+              sudo yum install -y hdf5-devel
+            fi
+          fi
+          
+          # Build the wheel
+          python3 -m build --wheel
+          
+          # Repair the wheel with auditwheel
+          for wheel in dist/*.whl; do
+            auditwheel repair "$wheel" --wheel-dir wheelhouse/ || cp "$wheel" wheelhouse/
+          done
+          
+          # Verify wheels were created
+          ls -la wheelhouse/
+        if: matrix.arch == 'ppc64le'
 
       - run: python ./ci/bundle_hdf5_whl.py wheelhouse
         if: runner.os == 'Windows'
