@@ -28,9 +28,8 @@ on:
   # Run on tags
   push:
     branches:
-      - master
-    tags:
-      - '*'
+      - "**"
+    
 
 permissions:
   actions: read
