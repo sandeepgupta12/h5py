@@ -186,7 +186,7 @@ jobs:
           sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1
           python3 --version 
           
-          
+
           # Setup virtual environment
           export PATH=$HOME/.local/bin:$PATH
           python3 -m venv venv
@@ -240,7 +240,7 @@ jobs:
             unset CIBW_MUSLLINUX_PPC64LE_IMAGE
             # Force native builds by disabling manylinux altogether
             export CIBW_SKIP="*musllinux* *manylinux*"
-            export CIBW_BUILD="cp3*-linux_ppc64le"
+            export CIBW_BUILD="cp3*"
           fi
           
           # Run cibuildwheel
