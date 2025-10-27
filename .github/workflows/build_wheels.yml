@@ -122,8 +122,27 @@ jobs:
       # Triage build
       - run: bash ./ci/triage_build.sh "${{ matrix.arch }}" "${{ github.event.pull_request.head.sha || github.sha }}"
 
-      # Now actually build the wheels
+      # Now actually build the wheels (non-ppc64le)
       - uses: pypa/cibuildwheel@9c00cb4f6b517705a3794b22395aedc36257242c # v3.2.1
+        env:
+          CIBW_ARCHS: ${{ matrix.arch }}
+        if: matrix.arch != 'ppc64le'
+
+      # Build wheels for ppc64le (skip setup-python)
+      - name: Build wheels for ppc64le
+        if: matrix.arch == 'ppc64le'
+        run: |
+          # Install system Python for cibuildwheel
+          sudo apt-get update
+          sudo apt-get install -y python3.12 python3.12-dev python3.12-venv python3-pip
+          python3.12 -m venv venv
+          source venv/bin/activate
+          pip install cibuildwheel
+          
+          # Run cibuildwheel
+          cibuildwheel
+        env:
+          CIBW_ARCHS: ppc64le
 
       - run: python ./ci/bundle_hdf5_whl.py wheelhouse
         if: runner.os == 'Windows'
