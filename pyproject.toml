@@ -158,12 +158,6 @@ delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} \
 H5PY_ROS3 = "0"
 H5PY_DIRECT_VFD = "0"
 
-# ppc64le-specific configuration
-[[tool.cibuildwheel.overrides]]
-select = "cp3*-linux_ppc64le"
-# Allow numpy to be built from source since no ppc64le wheels are available on PyPI
-build-frontend = { name = "pip", args = [] }
-
 [tool.uv]
 # never build numpy from source
 no-build-package = ["numpy"]
