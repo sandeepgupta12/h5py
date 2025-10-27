@@ -131,6 +131,7 @@ skip = [
 build-verbosity = 1
 build-frontend = { name = "pip", args = ["--only-binary", "numpy"] }
 manylinux-x86_64-image = "ghcr.io/h5py/manylinux_2_28_x86_64-hdf5"
+manylinux-ppc64le-image = "ghcr.io/sandeepgupta12/manylinux_2_28_ppc64le-hdf5"
 manylinux-aarch64-image = "ghcr.io/h5py/manylinux_2_28_aarch64-hdf5"
 musllinux-x86_64-image = "ghcr.io/h5py/musllinux_1_2_x86_64-hdf5"
 musllinux-aarch64-image = "ghcr.io/h5py/musllinux_1_2_aarch64-hdf5"
