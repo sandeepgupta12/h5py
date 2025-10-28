@@ -128,6 +128,14 @@ jobs:
           CIBW_ARCHS: ${{ matrix.arch }}
         if: matrix.arch != 'ppc64le'
 
+      # Cache compiled numpy for ppc64le builds
+      - name: Cache compiled numpy for ppc64le
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.2.4
+        with:
+          key: numpy-ppc64le-${{ hashFiles('**/pyproject.toml') }}
+          path: ~/.cache/pip
+        if: matrix.arch == 'ppc64le'
+
       # Build wheels for ppc64le (skip setup-python)
       - name: Build wheels for ppc64le
         if: matrix.arch == 'ppc64le'
@@ -139,16 +147,24 @@ jobs:
           source venv/bin/activate
           pip install cibuildwheel
           
+          # Create/cache a numpy wheel for ppc64le
+          mkdir -p /tmp/numpy-wheels
+          if [ ! -f /tmp/numpy-wheels/numpy-*-ppc64le.whl ]; then
+            echo "Building numpy wheel for ppc64le..."
+            pip wheel --no-binary=numpy --wheel-dir=/tmp/numpy-wheels numpy
+          fi
+          
           # Run cibuildwheel with special configuration for ppc64le
           cibuildwheel
         env:
           CIBW_ARCHS: ppc64le
           # Override the global build-frontend setting to allow source builds
           CIBW_BUILD_FRONTEND: "pip"
-          # Pre-install numpy before building h5py
-          CIBW_BEFORE_BUILD: "pip install --no-binary=numpy numpy"
-          # Skip tests for ppc64le since numpy testing infrastructure doesn't support it
-          CIBW_TEST_SKIP: "cp*-*ppc64le"
+          # Use pre-built numpy wheel from cache
+          CIBW_BEFORE_BUILD: "pip install /tmp/numpy-wheels/numpy-*-ppc64le.whl || pip install --find-links /tmp/numpy-wheels numpy"
+          CIBW_BEFORE_TEST: "echo 'numpy already installed'"
+          # Enable pip caching for faster rebuilds
+          CIBW_ENVIRONMENT: "PIP_CACHE_DIR=/tmp/pip-cache NPY_NUM_BUILD_JOBS=4"
 
       - run: python ./ci/bundle_hdf5_whl.py wheelhouse
         if: runner.os == 'Windows'
