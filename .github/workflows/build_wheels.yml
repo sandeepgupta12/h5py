@@ -148,11 +148,14 @@ jobs:
           pip install cibuildwheel
           pip install meson ninja meson-python Cython pyproject-metadata
           pip install -U pip setuptools wheel cibuildwheel build
+          echo "Meson path:" $(which meson)
+          meson --version  # sanity check
+
           # Build NumPy once and store wheel
           pip install build
           git clone https://github.com/numpy/numpy.git
           cd numpy
-          python -m build --wheel --no-isolation
+          python -m build --wheel --no-isolation -v
           # mkdir -p /tmp/numpy_wheels
           # cp dist/*.whl /tmp/numpy_wheels/
           pip install dist/*.whl
