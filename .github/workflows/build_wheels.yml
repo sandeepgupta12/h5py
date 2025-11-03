@@ -138,6 +138,27 @@ jobs:
 
        # Build wheels for ppc64le (skip setup-python)
       # 
+      - name: Prebuild NumPy wheels for all Python versions (ppc64le)
+        if: matrix.arch == 'ppc64le'
+        run: |
+          mkdir -p /tmp/numpy_wheels
+
+          # Loop over all Python versions that cibuildwheel will use
+          for PYBIN in /opt/python/cp3[1][0-2]*/bin; do
+            echo "=== Building NumPy using $PYBIN ==="
+            "$PYBIN/pip" install -U pip setuptools wheel meson ninja meson-python Cython build
+            git clone --depth=1 --recurse-submodules https://github.com/numpy/numpy.git numpy_build
+            cd numpy_build
+            export MESONPY_USE_SYSTEM_MESON=1
+            "$PYBIN/python" -m build --wheel --no-isolation -v
+            cp dist/*.whl /tmp/numpy_wheels/
+            cd ..
+            rm -rf numpy_build
+          done
+
+          echo "✅ Built NumPy wheels:"
+          ls -lh /tmp/numpy_wheels
+        shell: bash
       
       # Step 1: Build NumPy wheels for all Python versions on ppc64le
       - name: Build NumPy wheels (ppc64le)
