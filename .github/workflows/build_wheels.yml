@@ -165,7 +165,7 @@ jobs:
           # Override the global build-frontend setting to allow source builds
           CIBW_BUILD_FRONTEND: "pip"
           # Pre-install numpy before building h5py
-          CIBW_BEFORE_BUILD: "pip install --no-binary=numpy numpy"
+          #CIBW_BEFORE_BUILD: "pip install --no-binary=numpy numpy"
           # Skip tests for ppc64le since numpy testing infrastructure doesn't support it
           #CIBW_TEST_SKIP: "cp*-*ppc64le"
 
