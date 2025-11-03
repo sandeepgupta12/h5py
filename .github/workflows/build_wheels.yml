@@ -137,92 +137,93 @@ jobs:
       #   if: matrix.arch == 'ppc64le'
 
        # Build wheels for ppc64le (skip setup-python)
-      # - name: Build wheels for ppc64le
-      #   if: matrix.arch == 'ppc64le'
-      #   run: |
-      #     # Install system Python for cibuildwheel
-      #     sudo apt-get update
-      #     sudo apt-get install -y python3.12 python3.12-dev python3.12-venv python3-pip
-      #     python3.12 -m venv venv
-      #     source venv/bin/activate
-      #     pip install cibuildwheel
-      #     pip install meson ninja meson-python Cython pyproject-metadata
-      #     pip install -U pip setuptools wheel cibuildwheel build
-      #     echo "Meson path:" $(which meson)
-      #     meson --version  # sanity check
-
-      #     # Build NumPy once and store wheel
-      #     pip install build
-      #     git clone --recurse-submodules https://github.com/numpy/numpy.git
-      #     cd numpy
-      #     export MESONPY_USE_SYSTEM_MESON=1
-      #     python -m build --wheel --no-isolation -v
-      #     mkdir -p ../numpy_wheels
-      #     cp dist/*.whl ../numpy_wheels/
-      #     cd ..
-          
-      #     # Run cibuildwheel with special configuration for ppc64le
-      #     cibuildwheel
-      #   env:
-      #     CIBW_ARCHS: ppc64le
-      #     # Override the global build-frontend setting to allow source builds
-      #     CIBW_BUILD_FRONTEND: "pip"
-      #     # Pre-install numpy before building h5py
-      #     #CIBW_BEFORE_BUILD: "pip install --no-binary=numpy numpy"
-      #     CIBW_BEFORE_BUILD: "pip install ./numpy_wheels/*.whl"
-      #     # Skip tests for ppc64le since numpy testing infrastructure doesn't support it
-      #     #CIBW_TEST_SKIP: "cp*-*ppc64le"
-
-            # Build wheels for ppc64le (skip setup-python)
       - name: Build wheels for ppc64le
         if: matrix.arch == 'ppc64le'
         run: |
+          # Install system Python for cibuildwheel
           sudo apt-get update
-          sudo apt-get install -y python3.10  python3.10-venv \
-                                  python3.11  python3.11-venv \
-                                  python3.12 python3.12-dev python3.12-venv git
-
-          # Create directory to store NumPy wheels
-          mkdir -p /tmp/numpy_wheels
-          # =============================================================
-          # STEP 1: Build NumPy wheels once per Python version
-          # =============================================================
-          for PYVER in 3.10 3.11 3.12; do
-            echo "=== Building NumPy for Python ${PYVER} ==="
-            python${PYVER} -m venv venv_${PYVER}
-            source venv_${PYVER}/bin/activate
-            pip install -U pip setuptools wheel meson ninja meson-python Cython build
-            git clone --depth=1 --recurse-submodules https://github.com/numpy/numpy.git numpy_${PYVER}
-            cd numpy_${PYVER}
-            python -m build --wheel --no-isolation -v
-            cp dist/*.whl /tmp/numpy_wheels/
-            cd ..
-            deactivate
-            echo "=== ✅ Finished building NumPy for Python ${PYVER} ==="
-          done
-
-          echo "✅ All NumPy wheels built:"
-          ls -lh /tmp/numpy_wheels/
-
-          # =============================================================
-          # STEP 2: Build project wheels with cibuildwheel
-          # =============================================================
+          sudo apt-get install -y python3.12 python3.12-dev python3.12-venv python3-pip
           python3.12 -m venv venv
           source venv/bin/activate
-          pip install -U pip setuptools wheel cibuildwheel
+          pip install cibuildwheel
+          pip install meson ninja meson-python Cython pyproject-metadata
+          pip install -U pip setuptools wheel cibuildwheel build
+          echo "Meson path:" $(which meson)
+          meson --version  # sanity check
 
-          # Run cibuildwheel for both manylinux & musllinux
-          cibuildwheel --platform linux
+          # Build NumPy once and store wheel
+          pip install build
+          git clone --recurse-submodules https://github.com/numpy/numpy.git
+          cd numpy
+          export MESONPY_USE_SYSTEM_MESON=1
+          python -m build --wheel --no-isolation -v
+          mkdir -p ../numpy_wheels
+          cp dist/*.whl ../numpy_wheels/
+          cd ..
+          
+          # Run cibuildwheel with special configuration for ppc64le
+          cibuildwheel
         env:
           CIBW_ARCHS: ppc64le
+          CIBW_BUILD: cp312-musllinux_ppc64le, cp312-manylinux_ppc64le
+          # Override the global build-frontend setting to allow source builds
           CIBW_BUILD_FRONTEND: "pip"
-          # Use matching NumPy wheel per Python version
-          CIBW_BEFORE_BUILD: >
-            sh -c "PYTAG=$(python3 -c 'import sys; print(f\"cp{sys.version_info.major}{sys.version_info.minor}\")');
-                   echo Installing NumPy wheel for $PYTAG;
-                   pip install /tmp/numpy_wheels/numpy-*${PYTAG}*.whl"
-          # Skip tests (optional for ppc64le)
-          CIBW_TEST_SKIP: "cp*-*ppc64le"
+          # Pre-install numpy before building h5py
+          #CIBW_BEFORE_BUILD: "pip install --no-binary=numpy numpy"
+          CIBW_BEFORE_BUILD: "pip install ./numpy_wheels/*.whl"
+          # Skip tests for ppc64le since numpy testing infrastructure doesn't support it
+          #CIBW_TEST_SKIP: "cp*-*ppc64le"
+
+            # Build wheels for ppc64le (skip setup-python)
+      # - name: Build wheels for ppc64le
+      #   if: matrix.arch == 'ppc64le'
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y python3.10  python3.10-venv \
+      #                             python3.11  python3.11-venv \
+      #                             python3.12 python3.12-dev python3.12-venv git
+
+      #     # Create directory to store NumPy wheels
+      #     mkdir -p /tmp/numpy_wheels
+      #     # =============================================================
+      #     # STEP 1: Build NumPy wheels once per Python version
+      #     # =============================================================
+      #     for PYVER in 3.10 3.11 3.12; do
+      #       echo "=== Building NumPy for Python ${PYVER} ==="
+      #       python${PYVER} -m venv venv_${PYVER}
+      #       source venv_${PYVER}/bin/activate
+      #       pip install -U pip setuptools wheel meson ninja meson-python Cython build
+      #       git clone --depth=1 --recurse-submodules https://github.com/numpy/numpy.git numpy_${PYVER}
+      #       cd numpy_${PYVER}
+      #       python -m build --wheel --no-isolation -v
+      #       cp dist/*.whl /tmp/numpy_wheels/
+      #       cd ..
+      #       deactivate
+      #       echo "=== ✅ Finished building NumPy for Python ${PYVER} ==="
+      #     done
+
+      #     echo "✅ All NumPy wheels built:"
+      #     ls -lh /tmp/numpy_wheels/
+
+      #     # =============================================================
+      #     # STEP 2: Build project wheels with cibuildwheel
+      #     # =============================================================
+      #     python3.12 -m venv venv
+      #     source venv/bin/activate
+      #     pip install -U pip setuptools wheel cibuildwheel
+
+      #     # Run cibuildwheel for both manylinux & musllinux
+      #     cibuildwheel --platform linux
+      #   env:
+      #     CIBW_ARCHS: ppc64le
+      #     CIBW_BUILD_FRONTEND: "pip"
+      #     # Use matching NumPy wheel per Python version
+      #     CIBW_BEFORE_BUILD: >
+      #       sh -c "PYTAG=$(python3 -c 'import sys; print(f\"cp{sys.version_info.major}{sys.version_info.minor}\")');
+      #              echo Installing NumPy wheel for $PYTAG;
+      #              pip install /tmp/numpy_wheels/numpy-*${PYTAG}*.whl"
+      #     # Skip tests (optional for ppc64le)
+      #     CIBW_TEST_SKIP: "cp*-*ppc64le"
 
       - run: python ./ci/bundle_hdf5_whl.py wheelhouse
         if: runner.os == 'Windows'
