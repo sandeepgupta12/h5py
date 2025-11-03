@@ -155,6 +155,7 @@ jobs:
           pip install build
           git clone https://github.com/numpy/numpy.git
           cd numpy
+          export MESONPY_USE_SYSTEM_MESON=1
           python -m build --wheel --no-isolation -v
           # mkdir -p /tmp/numpy_wheels
           # cp dist/*.whl /tmp/numpy_wheels/
