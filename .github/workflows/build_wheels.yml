@@ -165,7 +165,7 @@ jobs:
           cibuildwheel
         env:
           CIBW_ARCHS: ppc64le
-          CIBW_BUILD: cp312-musllinux_ppc64le, cp312-manylinux_ppc64le
+          CIBW_BUILD: cp312-musllinux_ppc64le cp312-manylinux_ppc64le
           # Override the global build-frontend setting to allow source builds
           CIBW_BUILD_FRONTEND: "pip"
           # Pre-install numpy before building h5py
