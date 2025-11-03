@@ -178,11 +178,12 @@ jobs:
         if: matrix.arch == 'ppc64le'
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3.12 python3.12-dev python3.12-venv git
+          sudo apt-get install -y python3.10  python3.10-venv \
+                                  python3.11  python3.11-venv \
+                                  python3.12 python3.12-dev python3.12-venv git
 
           # Create directory to store NumPy wheels
           mkdir -p /tmp/numpy_wheels
-
           # =============================================================
           # STEP 1: Build NumPy wheels once per Python version
           # =============================================================
