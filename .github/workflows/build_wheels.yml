@@ -157,9 +157,8 @@ jobs:
           cd numpy
           export MESONPY_USE_SYSTEM_MESON=1
           python -m build --wheel --no-isolation -v
-          # mkdir -p /tmp/numpy_wheels
-          # cp dist/*.whl /tmp/numpy_wheels/
-          pip install dist/*.whl
+          mkdir -p /tmp/numpy_wheels
+          cp dist/*.whl /tmp/numpy_wheels/
           cd ..
           
           # Run cibuildwheel with special configuration for ppc64le
@@ -170,6 +169,7 @@ jobs:
           CIBW_BUILD_FRONTEND: "pip"
           # Pre-install numpy before building h5py
           #CIBW_BEFORE_BUILD: "pip install --no-binary=numpy numpy"
+          CIBW_BEFORE_BUILD: "pip install /tmp/numpy_wheels/*.whl"
           # Skip tests for ppc64le since numpy testing infrastructure doesn't support it
           #CIBW_TEST_SKIP: "cp*-*ppc64le"
 
