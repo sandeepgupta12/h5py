@@ -146,7 +146,7 @@ jobs:
           python3.12 -m venv venv
           source venv/bin/activate
           pip install cibuildwheel
-
+          pip install meson ninja meson-python Cython pyproject-metadata
           # Build NumPy once and store wheel
           pip install build
           git clone https://github.com/numpy/numpy.git
