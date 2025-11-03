@@ -171,8 +171,9 @@ jobs:
           # Pre-install numpy before building h5py
           #CIBW_BEFORE_BUILD: "pip install --no-binary=numpy numpy"
           CIBW_BEFORE_BUILD: "pip install ./numpy_wheels/*.whl"
+          CIBW_BEFORE_TEST: "pip install ./numpy_wheels/*.whl"
           # Skip tests for ppc64le since numpy testing infrastructure doesn't support it
-          #CIBW_TEST_SKIP: "cp*-*ppc64le"
+          CIBW_TEST_SKIP: "cp*-*ppc64le"
 
             # Build wheels for ppc64le (skip setup-python)
       # - name: Build wheels for ppc64le
