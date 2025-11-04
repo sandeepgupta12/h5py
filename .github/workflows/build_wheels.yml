@@ -179,61 +179,48 @@ jobs:
 
       # Build wheels for ppc64le (skip setup-python)
       # 
-      
-      - name: Build NumPy (Python 3.10) and use it for h5py wheel build
+      - name: Build wheels for ppc64le (Python 3.10)
         if: matrix.arch == 'ppc64le'
         run: |
-          set -eux
+          set -ex
 
-          # 1️⃣ Install dependencies
-          apt-get update
-          apt-get install -y software-properties-common build-essential git curl pkg-config
+          # --- Install Python 3.10 ---
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository ppa:deadsnakes/ppa -y
+          sudo apt-get update
+          sudo apt-get install -y python3.10 python3.10-dev python3.10-venv python3-pip
 
-          # 2️⃣ Install Python 3.10
-          add-apt-repository ppa:deadsnakes/ppa -y
-          apt-get update
-          apt-get install -y python3.10 python3.10-dev python3.10-venv python3-pip
-
-          # 3️⃣ Setup Python 3.10 virtual environment
+          # --- Create venv and activate ---
           python3.10 -m venv venv
           source venv/bin/activate
-          python --version
 
-          # 4️⃣ Install older Meson + meson-python that still support Python 3.10
-          pip install --upgrade pip setuptools wheel
-          pip install "meson==1.3.2" "meson-python==0.14.0" "ninja==1.11.1.1" "Cython>=0.29.34,<4" "pyproject-metadata<0.8"
+          # --- Install build tools ---
+          pip install -U pip setuptools wheel build cibuildwheel meson ninja Cython meson-python pyproject-metadata
 
-          # 5️⃣ Build NumPy for Python 3.10
-          git clone --depth 1 https://github.com/numpy/numpy.git
+          echo "Meson path:" $(which meson)
+          meson --version
+
+          # --- Build NumPy (v1.26.4 supports Python 3.10) ---
+          git clone --branch v1.26.4 --depth 1 https://github.com/numpy/numpy.git
           cd numpy
           export MESONPY_USE_SYSTEM_MESON=1
-          export CFLAGS="-mcpu=power9 -mtune=power9"
           python -m build --wheel --no-isolation -v
           mkdir -p ../numpy_wheels
           cp dist/*.whl ../numpy_wheels/
           cd ..
 
-          # 6️⃣ Install the locally built NumPy wheel
-          pip install numpy_wheels/*.whl
-          python -c "import numpy; print('✅ NumPy built OK:', numpy.__version__)"
-
-          # 7️⃣ Build h5py wheel using cibuildwheel and preinstalled NumPy
-          pip install cibuildwheel
+          # --- Build h5py wheels using prebuilt NumPy ---
           cibuildwheel
         env:
           CIBW_ARCHS: ppc64le
-          CIBW_BUILD: cp310-manylinux_ppc64le
+          CIBW_BUILD: cp310-musllinux_ppc64le cp310-manylinux_ppc64le
           CIBW_BUILD_FRONTEND: "pip"
           CIBW_BEFORE_BUILD: "pip install ./numpy_wheels/*.whl"
           CIBW_BEFORE_TEST: "pip install ./numpy_wheels/*.whl"
           CIBW_TEST_SKIP: "cp*-*ppc64le"
 
       
-      
-
-     
-
-
             # Build wheels for ppc64le (skip setup-python)
       # - name: Build wheels for ppc64le
       #   if: matrix.arch == 'ppc64le'
