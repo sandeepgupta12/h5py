@@ -149,15 +149,12 @@ jobs:
           python3.10 -m venv venv
           source venv/bin/activate
           pip install cibuildwheel
-          pip install meson ninja meson-python Cython pyproject-metadata
-          pip install -U pip setuptools wheel cibuildwheel build
-          echo "Meson path:" $(which meson)
-          meson --version  # sanity check
+
           # Build NumPy once and store wheel
           pip install build
           git clone --recurse-submodules https://github.com/numpy/numpy.git
           cd numpy
-          export MESONPY_USE_SYSTEM_MESON=1
+          # export MESONPY_USE_SYSTEM_MESON=1
           python -m build --wheel --no-isolation -v
           mkdir -p ../numpy_wheels
           cp dist/*.whl ../numpy_wheels/
