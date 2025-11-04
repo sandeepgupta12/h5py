@@ -187,7 +187,7 @@ jobs:
 
           # 1️⃣ Install dependencies
           apt-get update
-          apt-get install -y software-properties-common build-essential git curl
+          apt-get install -y software-properties-common build-essential git curl pkg-config
 
           # 2️⃣ Install Python 3.10
           add-apt-repository ppa:deadsnakes/ppa -y
@@ -199,23 +199,26 @@ jobs:
           source venv/bin/activate
           python --version
 
-          # 4️⃣ Install build tools (pin versions compatible with Python 3.10)
+          # 4️⃣ Install older Meson + meson-python that still support Python 3.10
           pip install --upgrade pip setuptools wheel
-          pip install "meson==1.3.2" "meson-python==0.14.0" "ninja" "Cython>=0.29.34,<4" pyproject-metadata build cibuildwheel
+          pip install "meson==1.3.2" "meson-python==0.14.0" "ninja==1.11.1.1" "Cython>=0.29.34,<4" "pyproject-metadata<0.8"
 
-          # 5️⃣ Clone and build NumPy once for Python 3.10
-          git clone --branch main --depth 1 https://github.com/numpy/numpy.git
+          # 5️⃣ Build NumPy for Python 3.10
+          git clone --depth 1 https://github.com/numpy/numpy.git
           cd numpy
+          export MESONPY_USE_SYSTEM_MESON=1
           export CFLAGS="-mcpu=power9 -mtune=power9"
-          python -m pip wheel . -w ../numpy_wheels --no-build-isolation
+          python -m build --wheel --no-isolation -v
+          mkdir -p ../numpy_wheels
+          cp dist/*.whl ../numpy_wheels/
           cd ..
 
-          # 6️⃣ Verify NumPy build
-          ls numpy_wheels/
+          # 6️⃣ Install the locally built NumPy wheel
           pip install numpy_wheels/*.whl
-          python -c "import numpy; print('✅ NumPy built OK, version:', numpy.__version__)"
+          python -c "import numpy; print('✅ NumPy built OK:', numpy.__version__)"
 
           # 7️⃣ Build h5py wheel using cibuildwheel and preinstalled NumPy
+          pip install cibuildwheel
           cibuildwheel
         env:
           CIBW_ARCHS: ppc64le
@@ -224,6 +227,7 @@ jobs:
           CIBW_BEFORE_BUILD: "pip install ./numpy_wheels/*.whl"
           CIBW_BEFORE_TEST: "pip install ./numpy_wheels/*.whl"
           CIBW_TEST_SKIP: "cp*-*ppc64le"
+
       
       
 
