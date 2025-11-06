@@ -196,29 +196,37 @@ jobs:
             python3.13 python3.13-dev python3.13-venv \
             python3.14 python3.14-dev python3.14-venv python3-pip
 
-          # Use native ninja (built for ppc64le)
           export NINJA=$(which ninja)
-
-          # Install shared build tools globally (safe to reuse)
-          pip install -U pip setuptools wheel meson Cython
-
           mkdir -p numpy_wheels
           git clone --recurse-submodules https://github.com/numpy/numpy.git
           cd numpy
 
+          # 🔧 Preinstall universal build tools once (outside loop)
+          # These are needed for isolated builds inside venvs
           for PYVER in 3.11 3.12 3.13 3.14; do
-            echo "🔹 Building NumPy for Python $PYVER"
+            echo "🔹 Preparing Python $PYVER environment..."
             python${PYVER} -m venv venv
             source venv/bin/activate
-            pip install meson-python build packaging pyproject-metadata
+
+            # ✅ Install full build toolchain here
+            pip install -U pip setuptools wheel meson ninja meson-python Cython build packaging pyproject-metadata
+
+            # Optional sanity check
+            cython --version
+
+            # ✅ Use system meson to avoid rebuild
             export MESONPY_USE_SYSTEM_MESON=1
+
+            echo "🚧 Building NumPy wheel for Python $PYVER..."
             python -m build --wheel --no-isolation -v
+
             cp dist/*.whl ../numpy_wheels/
             deactivate
           done
 
           cd ..
         shell: bash
+
 
 
 
