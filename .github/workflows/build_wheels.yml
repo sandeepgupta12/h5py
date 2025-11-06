@@ -145,8 +145,8 @@ jobs:
           sudo apt-get install -y software-properties-common
           sudo add-apt-repository ppa:deadsnakes/ppa -y
           sudo apt-get update
-          sudo apt-get install -y python3.11 python3.11-dev python3.11-venv python3-pip
-          python3.11 -m venv venv
+          sudo apt-get install -y python3.12 python3.12-dev python3.12-venv python3-pip
+          python3.12 -m venv venv
           source venv/bin/activate
           pip install cibuildwheel
           pip install meson ninja meson-python Cython pyproject-metadata
@@ -167,7 +167,7 @@ jobs:
           cibuildwheel
         env:
           CIBW_ARCHS: ppc64le
-          CIBW_BUILD: cp311-musllinux_ppc64le cp311-manylinux_ppc64le
+          CIBW_BUILD: cp312-musllinux_ppc64le cp312-manylinux_ppc64le
           # Override the global build-frontend setting to allow source builds
           CIBW_BUILD_FRONTEND: "pip"
           # Pre-install numpy before building h5py
