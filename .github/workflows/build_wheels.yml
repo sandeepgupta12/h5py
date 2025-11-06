@@ -189,10 +189,10 @@ jobs:
           sudo apt-get install -y software-properties-common
           sudo add-apt-repository ppa:deadsnakes/ppa -y
           sudo apt-get update
-          sudo apt-get install -y python3.10 python3.10-dev python3.10-venv python3-pip
+          sudo apt-get install -y python3.11 python3.11-dev python3.11-venv python3-pip
 
           # --- Create venv and activate ---
-          python3.10 -m venv venv
+          python3.11 -m venv venv
           source venv/bin/activate
 
           # --- Install build tools ---
@@ -202,7 +202,7 @@ jobs:
           meson --version
 
           # --- Build NumPy (v1.26.4 supports Python 3.10) ---
-          git clone --branch v1.26.4 --depth 1 https://github.com/numpy/numpy.git
+          git clone --depth 1 https://github.com/numpy/numpy.git
           cd numpy
           export MESONPY_USE_SYSTEM_MESON=1
           python -m build --wheel --no-isolation -v
@@ -214,7 +214,7 @@ jobs:
           cibuildwheel
         env:
           CIBW_ARCHS: ppc64le
-          CIBW_BUILD: cp310-musllinux_ppc64le cp310-manylinux_ppc64le
+          CIBW_BUILD: cp311-musllinux_ppc64le cp311-manylinux_ppc64le
           CIBW_BUILD_FRONTEND: "pip"
           CIBW_BEFORE_BUILD: "pip install ./numpy_wheels/*.whl"
           CIBW_BEFORE_TEST: "pip install ./numpy_wheels/*.whl"
