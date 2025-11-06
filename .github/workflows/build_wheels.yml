@@ -183,20 +183,24 @@ jobs:
       #     CIBW_BEFORE_TEST: "pip install ./numpy_wheels/*.whl"
       #     CIBW_TEST_SKIP: "cp*-*ppc64le"
 
-      - name: Build NumPy once and reuse for h5py (ppc64le)
+      - name: Build NumPy for Python 3.11–3.14 (ppc64le)
         if: matrix.arch == 'ppc64le'
         run: |
           sudo apt-get update
-          sudo apt-get install -y software-properties-common
+          sudo apt-get install -y software-properties-common ninja-build
           sudo add-apt-repository ppa:deadsnakes/ppa -y
           sudo apt-get update
-          sudo apt-get install -y python3.11 python3.11-dev python3.11-venv \
-                                  python3.12 python3.12-dev python3.12-venv \
-                                  python3.13 python3.13-dev python3.13-venv \
-                                  python3.14 python3.14-dev python3.14-venv python3-pip
+          sudo apt-get install -y \
+            python3.11 python3.11-dev python3.11-venv \
+            python3.12 python3.12-dev python3.12-venv \
+            python3.13 python3.13-dev python3.13-venv \
+            python3.14 python3.14-dev python3.14-venv python3-pip
 
-          # ✅ Install heavy shared build tools globally (reused by all venvs)
-          pip install -U pip setuptools wheel meson ninja Cython
+          # Use native ninja (built for ppc64le)
+          export NINJA=$(which ninja)
+
+          # Install shared build tools globally (safe to reuse)
+          pip install -U pip setuptools wheel meson Cython
 
           mkdir -p numpy_wheels
           git clone --recurse-submodules https://github.com/numpy/numpy.git
@@ -206,7 +210,7 @@ jobs:
             echo "🔹 Building NumPy for Python $PYVER"
             python${PYVER} -m venv venv
             source venv/bin/activate
-            pip install meson-python build  # ✅ only lightweight version-specific tools
+            pip install meson-python build packaging pyproject-metadata
             export MESONPY_USE_SYSTEM_MESON=1
             python -m build --wheel --no-isolation -v
             cp dist/*.whl ../numpy_wheels/
@@ -215,6 +219,7 @@ jobs:
 
           cd ..
         shell: bash
+
 
 
       - name: Build h5py wheels for ppc64le
