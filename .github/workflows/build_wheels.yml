@@ -143,7 +143,7 @@ jobs:
         if: matrix.arch == 'ppc64le'
         run: |
           sudo apt-get update
-          sudo apt-get install -y software-properties-common
+          sudo apt-get install -y software-properties-common pkg-config
           sudo add-apt-repository ppa:deadsnakes/ppa -y
           sudo apt-get update
           sudo apt-get install -y \
@@ -157,9 +157,10 @@ jobs:
           cd numpy
           # Ensure latest pip tooling
           for PY in 3.11 3.12 3.13 3.14; do
+            echo "🔹 Building NumPy for Python $PY..."
             python$PY -m venv venv$PY
             source venv$PY/bin/activate
-            pip install -U pip setuptools wheel meson ninja meson-python Cython build cibuildwheel
+            pip install -U pip setuptools wheel meson ninja meson-python Cython build
             echo "Building NumPy for Python $PY..."
             # git clone --depth 1 --recurse-submodules https://github.com/numpy/numpy.git numpy-$PY
             # cd numpy-$PY
@@ -167,15 +168,18 @@ jobs:
             python -m build --wheel --no-isolation -v
             mkdir -p ../numpy_wheels
             cp dist/*.whl ../numpy_wheels/
-            cd ..
+            #cd ..
             deactivate
+            rm -rf build dist .mesonpy-* _skbuild
           done
 
+          cd ..
+
           # Build h5py using cibuildwheel and preinstall built NumPy
-          python3.12 -m venv venv
-          source venv/bin/activate
-          pip install cibuildwheel
-          cibuildwheel
+          # python3.12 -m venv venv
+          # source venv/bin/activate
+          # pip install cibuildwheel
+          # cibuildwheel
         env:
           CIBW_ARCHS: ppc64le
           CIBW_BUILD: "cp311-manylinux_ppc64le cp312-manylinux_ppc64le cp313-manylinux_ppc64le cp314-manylinux_ppc64le"
