@@ -181,14 +181,14 @@ jobs:
           CIBW_BUILD: "cp311-manylinux_ppc64le cp312-manylinux_ppc64le cp313-manylinux_ppc64le cp314-manylinux_ppc64le"
           CIBW_BUILD_FRONTEND: "pip"
           # Preinstall local NumPy wheels (matched automatically)
-          CIBW_BEFORE_BUILD: "pip install ./numpy_wheels/*.whl"
-          CIBW_BEFORE_TEST: "pip install ./numpy_wheels/*.whl"
-          # CIBW_BEFORE_BUILD: |
-          #   PYTAG=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
-          #   pip install ./numpy_wheels/*${PYTAG}*.whl
-          # CIBW_BEFORE_TEST: |
-          #   PYTAG=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
-          #   pip install ./numpy_wheels/*${PYTAG}*.whl
+          # CIBW_BEFORE_BUILD: "pip install ./numpy_wheels/*.whl"
+          # CIBW_BEFORE_TEST: "pip install ./numpy_wheels/*.whl"
+          CIBW_BEFORE_BUILD: |
+            PYTAG=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
+            pip install ./numpy_wheels/*${PYTAG}*.whl
+          CIBW_BEFORE_TEST: |
+            PYTAG=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
+            pip install ./numpy_wheels/*${PYTAG}*.whl
           CIBW_TEST_SKIP: "cp*-*ppc64le"
 
       # - name: Build NumPy for Python 3.11–3.14 (ppc64le)
