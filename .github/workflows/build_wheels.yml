@@ -193,7 +193,7 @@ jobs:
             echo "Installing matching NumPy wheel before tests..."
             pip install ./numpy_wheels/*${PYTAG}*.whl
 
-          CIBW_TEST_SKIP: "cp*-*ppc64le"
+          #CIBW_TEST_SKIP: "cp*-*ppc64le"
 
       - run: python ./ci/bundle_hdf5_whl.py wheelhouse
         if: runner.os == 'Windows'
