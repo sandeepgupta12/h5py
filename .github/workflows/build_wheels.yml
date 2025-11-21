@@ -185,9 +185,7 @@ jobs:
           CIBW_BUILD: "cp311-manylinux_ppc64le"
           CIBW_BUILD_FRONTEND: "pip"
 
-          # ⭐ FIX: Force tox to use our prebuilt NumPy wheel
-          H5PY_NUMPY_OVERRIDE: "./numpy_wheels"
-          
+
           CIBW_BEFORE_BUILD: |
             PYTAG=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
             echo "Installing matching NumPy wheel before build..."
@@ -197,6 +195,10 @@ jobs:
             PYTAG=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
             echo "Installing matching NumPy wheel before tests..."
             pip install ./numpy_wheels/*${PYTAG}*.whl
+
+           # ⭐ Required: expose wheel path to tox test env
+          CIBW_TEST_ENVIRONMENT: |
+            H5PY_NUMPY_OVERRIDE=./numpy_wheels
 
           #CIBW_TEST_SKIP: "cp*-*ppc64le"
 
