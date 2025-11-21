@@ -139,9 +139,9 @@ jobs:
           echo "Installing Python versions 3.11–3.14..."
           sudo apt-get install -y \
             python3.11 python3.11-dev python3.11-venv \
-            python3.12 python3.12-dev python3.12-venv \
-            python3.13 python3.13-dev python3.13-venv \
-            python3.14 python3.14-dev python3.14-venv \
+            # python3.12 python3.12-dev python3.12-venv \
+            # python3.13 python3.13-dev python3.13-venv \
+            # python3.14 python3.14-dev python3.14-venv \
             python3-pip
 
           echo "Cloning NumPy repository..."
@@ -149,7 +149,7 @@ jobs:
 
           echo "Building NumPy wheels for all Python versions..."
           cd numpy
-          for PY in 3.11 3.12 3.13 3.14; do
+          for PY in 3.11; do
             echo "Building NumPy for Python $PY..."
             python$PY -m venv venv$PY
             source venv$PY/bin/activate
@@ -180,8 +180,10 @@ jobs:
           cibuildwheel
         env:
           CIBW_ARCHS: ppc64le
-          CIBW_BUILD: "cp311-manylinux_ppc64le cp312-manylinux_ppc64le cp313-manylinux_ppc64le cp314-manylinux_ppc64le"
+          #CIBW_BUILD: "cp311-manylinux_ppc64le cp312-manylinux_ppc64le cp313-manylinux_ppc64le cp314-manylinux_ppc64le"
+          CIBW_BUILD: "cp311-manylinux_ppc64le"
           CIBW_BUILD_FRONTEND: "pip"
+
 
           CIBW_BEFORE_BUILD: |
             PYTAG=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
