@@ -190,11 +190,20 @@ jobs:
             PYTAG=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
             echo "Installing matching NumPy wheel before build..."
             pip install ./numpy_wheels/*${PYTAG}*.whl
-
           CIBW_BEFORE_TEST: |
-            PYTAG=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
-            echo "Installing matching NumPy wheel before tests..."
-            pip install ./numpy_wheels/*${PYTAG}*.whl
+            echo "Setting up local NumPy wheels folder for tests..."
+            export H5PY_NUMPY_OVERRIDE=./numpy_wheels
+
+           # ⭐ MOST IMPORTANT FIX ⭐
+          CIBW_TEST_COMMAND: |
+            echo "⚠ Installing NumPy from local wheel directory using uv (no PyPI)..."
+            uv pip install --no-index --find-links ./numpy_wheels "numpy>=1.21.2"
+            bash {project}/ci/cibw_test_command.sh {project} {wheel}
+
+          # CIBW_BEFORE_TEST: |
+          #   PYTAG=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
+          #   echo "Installing matching NumPy wheel before tests..."
+          #   pip install ./numpy_wheels/*${PYTAG}*.whl
 
            # ⭐ Required: expose wheel path to tox test env
           CIBW_TEST_ENVIRONMENT: |
