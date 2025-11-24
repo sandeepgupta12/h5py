@@ -237,6 +237,7 @@ jobs:
           # No need to install numpy in test or build stage
           CIBW_BEFORE_BUILD: ""
           CIBW_BEFORE_TEST: ""
+          UV_NO_BUILD_PACKAGE: "coverage"
           #CIBW_TEST_COMMAND: "bash {project}/ci/cibw_test_command.sh {project} {wheel}"
 
           # If tests should be skipped on ppc64le, uncomment:
