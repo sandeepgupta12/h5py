@@ -161,4 +161,4 @@ H5PY_DIRECT_VFD = "0"
 
 [tool.uv]
 # never build numpy from source
-no-build-package = ["numpy"]
+#no-build-package = ["numpy"]
