@@ -125,94 +125,122 @@ jobs:
       - uses: pypa/cibuildwheel@63fd63b352a9a8bdcc24791c9dbee952ee9a8abc # v3.3.0
         if: matrix.arch != 'ppc64le'
 
-      - name: Setup Python, clone NumPy, and build wheels (ppc64le)
-        if: matrix.arch == 'ppc64le'
-        run: |
-          echo "🔧 Updating apt and installing system dependencies..."
-          sudo apt-get update
-          sudo apt-get install -y software-properties-common pkg-config git
+      # - name: Setup Python, clone NumPy, and build wheels (ppc64le)
+      #   if: matrix.arch == 'ppc64le'
+      #   run: |
+      #     echo "🔧 Updating apt and installing system dependencies..."
+      #     sudo apt-get update
+      #     sudo apt-get install -y software-properties-common pkg-config git
 
-          echo "Adding deadsnakes PPA for newer Python versions..."
-          sudo add-apt-repository ppa:deadsnakes/ppa -y
-          sudo apt-get update
+      #     echo "Adding deadsnakes PPA for newer Python versions..."
+      #     sudo add-apt-repository ppa:deadsnakes/ppa -y
+      #     sudo apt-get update
 
-          echo "Installing Python versions 3.11–3.14..."
-          sudo apt-get install -y \
-            python3.11 python3.11-dev python3.11-venv \
-            python3-pip
-            # python3.12 python3.12-dev python3.12-venv \
-            # python3.13 python3.13-dev python3.13-venv \
-            # python3.14 python3.14-dev python3.14-venv \
+      #     echo "Installing Python versions 3.11–3.14..."
+      #     sudo apt-get install -y \
+      #       python3.11 python3.11-dev python3.11-venv \
+      #       python3-pip
+      #       # python3.12 python3.12-dev python3.12-venv \
+      #       # python3.13 python3.13-dev python3.13-venv \
+      #       # python3.14 python3.14-dev python3.14-venv \
             
 
-          echo "Cloning NumPy repository..."
-          git clone --depth 1 --recurse-submodules https://github.com/numpy/numpy.git
+      #     echo "Cloning NumPy repository..."
+      #     git clone --depth 1 --recurse-submodules https://github.com/numpy/numpy.git
 
-          echo "Building NumPy wheels for all Python versions..."
-          cd numpy
-          for PY in 3.11; do
-            echo "Building NumPy for Python $PY..."
-            python$PY -m venv venv$PY
-            source venv$PY/bin/activate
+      #     echo "Building NumPy wheels for all Python versions..."
+      #     cd numpy
+      #     for PY in 3.11; do
+      #       echo "Building NumPy for Python $PY..."
+      #       python$PY -m venv venv$PY
+      #       source venv$PY/bin/activate
 
-            pip install -U pip setuptools wheel meson ninja meson-python Cython build
-            export MESONPY_USE_SYSTEM_MESON=1
+      #       pip install -U pip setuptools wheel meson ninja meson-python Cython build
+      #       export MESONPY_USE_SYSTEM_MESON=1
 
-            python -m build --wheel --no-isolation -v
+      #       python -m build --wheel --no-isolation -v
 
-            mkdir -p ../numpy_wheels
-            cp dist/*.whl ../numpy_wheels/
+      #       mkdir -p ../numpy_wheels
+      #       cp dist/*.whl ../numpy_wheels/
 
-            deactivate
-            rm -rf build dist .mesonpy-* _skbuild
-          done
+      #       deactivate
+      #       rm -rf build dist .mesonpy-* _skbuild
+      #     done
 
-      - name: ⚙️ Setup venv and build h5py wheels (ppc64le)
+      # - name: ⚙️ Setup venv and build h5py wheels (ppc64le)
+      #   if: matrix.arch == 'ppc64le'
+      #   run: |
+      #     echo "Creating Python 3.12 virtual environment..."
+      #     python3.12 -m venv venv
+      #     source venv/bin/activate
+
+      #     echo "⬆Installing build tools..."
+      #     pip install -U pip setuptools wheel cibuildwheel
+
+      #     echo "Building h5py wheels with cibuildwheel..."
+      #     cibuildwheel
+      #   env:
+      #     CIBW_ARCHS: ppc64le
+      #     #CIBW_BUILD: "cp311-manylinux_ppc64le cp312-manylinux_ppc64le cp313-manylinux_ppc64le cp314-manylinux_ppc64le"
+      #     CIBW_BUILD: "cp311-manylinux_ppc64le"
+      #     CIBW_BUILD_FRONTEND: "pip"
+
+
+      #     CIBW_BEFORE_BUILD: |
+      #       PYTAG=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
+      #       echo "Installing matching NumPy wheel before build..."
+      #       pip install ./numpy_wheels/*${PYTAG}*.whl
+      #     CIBW_BEFORE_TEST: |
+      #       echo "Setting up local NumPy wheels folder for tests..."
+      #       export H5PY_NUMPY_OVERRIDE=./numpy_wheels
+
+      #      # ⭐ MOST IMPORTANT FIX ⭐
+      #     CIBW_TEST_COMMAND: |
+      #       echo "⚠ Installing NumPy from local wheel directory using uv (no PyPI)..."
+      #       uv pip install --no-index --find-links ./numpy_wheels "numpy>=1.21.2"
+      #       bash {project}/ci/cibw_test_command.sh {project} {wheel}
+
+      #     # CIBW_BEFORE_TEST: |
+      #     #   PYTAG=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
+      #     #   echo "Installing matching NumPy wheel before tests..."
+      #     #   pip install ./numpy_wheels/*${PYTAG}*.whl
+
+      #      # ⭐ Required: expose wheel path to tox test env
+      #     CIBW_TEST_ENVIRONMENT: |
+      #       H5PY_NUMPY_OVERRIDE=./numpy_wheels
+
+      #     #CIBW_TEST_SKIP: "cp*-*ppc64le"
+
+      # - run: python ./ci/bundle_hdf5_whl.py wheelhouse
+      #   if: runner.os == 'Windows'
+
+      - name: ⚙️ Build h5py wheels using manylinux image (ppc64le)
         if: matrix.arch == 'ppc64le'
         run: |
           echo "Creating Python 3.12 virtual environment..."
           python3.12 -m venv venv
           source venv/bin/activate
 
-          echo "⬆Installing build tools..."
+          echo "Installing cibuildwheel..."
           pip install -U pip setuptools wheel cibuildwheel
 
-          echo "Building h5py wheels with cibuildwheel..."
+          echo "🚀 Building h5py wheels (NumPy already inside Docker image)"
           cibuildwheel
         env:
           CIBW_ARCHS: ppc64le
-          #CIBW_BUILD: "cp311-manylinux_ppc64le cp312-manylinux_ppc64le cp313-manylinux_ppc64le cp314-manylinux_ppc64le"
           CIBW_BUILD: "cp311-manylinux_ppc64le"
-          CIBW_BUILD_FRONTEND: "pip"
+          CIBW_BUILD_FRONTEND: pip
 
+          # Use your custom manylinux image with preinstalled NumPy
+          CIBW_MANYLINUX_PPC64LE_IMAGE: "ghcr.io/sandeepgupta12/manylinux_2_28_ppc64le-hdf5"
 
-          CIBW_BEFORE_BUILD: |
-            PYTAG=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
-            echo "Installing matching NumPy wheel before build..."
-            pip install ./numpy_wheels/*${PYTAG}*.whl
-          CIBW_BEFORE_TEST: |
-            echo "Setting up local NumPy wheels folder for tests..."
-            export H5PY_NUMPY_OVERRIDE=./numpy_wheels
+          # No need to install numpy in test or build stage
+          CIBW_BEFORE_BUILD: ""
+          CIBW_BEFORE_TEST: ""
+          CIBW_TEST_COMMAND: "bash {project}/ci/cibw_test_command.sh {project} {wheel}"
 
-           # ⭐ MOST IMPORTANT FIX ⭐
-          CIBW_TEST_COMMAND: |
-            echo "⚠ Installing NumPy from local wheel directory using uv (no PyPI)..."
-            uv pip install --no-index --find-links ./numpy_wheels "numpy>=1.21.2"
-            bash {project}/ci/cibw_test_command.sh {project} {wheel}
-
-          # CIBW_BEFORE_TEST: |
-          #   PYTAG=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
-          #   echo "Installing matching NumPy wheel before tests..."
-          #   pip install ./numpy_wheels/*${PYTAG}*.whl
-
-           # ⭐ Required: expose wheel path to tox test env
-          CIBW_TEST_ENVIRONMENT: |
-            H5PY_NUMPY_OVERRIDE=./numpy_wheels
-
-          #CIBW_TEST_SKIP: "cp*-*ppc64le"
-
-      - run: python ./ci/bundle_hdf5_whl.py wheelhouse
-        if: runner.os == 'Windows'
+          # If tests should be skipped on ppc64le, uncomment:
+          # CIBW_TEST_SKIP: "cp*-manylinux_ppc64le"
 
       # And upload the results
       - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
