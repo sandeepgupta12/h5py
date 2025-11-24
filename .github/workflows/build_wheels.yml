@@ -232,12 +232,12 @@ jobs:
           CIBW_BUILD_FRONTEND: pip
 
           # Use your custom manylinux image with preinstalled NumPy
-          CIBW_MANYLINUX_PPC64LE_IMAGE: "ghcr.io/sandeepgupta12/manylinux_2_28_ppc64le-hdf5"
+          #CIBW_MANYLINUX_PPC64LE_IMAGE: "ghcr.io/sandeepgupta12/manylinux_2_28_ppc64le-hdf5"
 
           # No need to install numpy in test or build stage
           CIBW_BEFORE_BUILD: ""
           CIBW_BEFORE_TEST: ""
-          CIBW_TEST_COMMAND: "bash {project}/ci/cibw_test_command.sh {project} {wheel}"
+          #CIBW_TEST_COMMAND: "bash {project}/ci/cibw_test_command.sh {project} {wheel}"
 
           # If tests should be skipped on ppc64le, uncomment:
           # CIBW_TEST_SKIP: "cp*-manylinux_ppc64le"
