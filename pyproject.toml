@@ -145,7 +145,7 @@ select = "cp3*-manylinux_ppc64le"
 # Otherwise, try to install a local wheel from ./numpy_wheels (if present),
 # then run pytest. This avoids invoking tox/uv on ppc64le where NumPy
 # building/resolution is problematic.
-test-command = """bash -lc 'python -c "import numpy" >/dev/null 2>&1 || (if [ -d ./numpy_wheels ]; then pip install --no-index --find-links ./numpy_wheels "numpy>=1.21.2"; fi); python -c "import pytest" >/dev/null 2>&1 || pip install pytest pytest-cov pytest-mpi; cd /tmp; python -m pytest -v --tb=short {project}/h5py/tests'"""
+test-command = """bash -lc 'python -c "import numpy" >/dev/null 2>&1 || (if [ -d ./numpy_wheels ]; then pip install --no-index --find-links ./numpy_wheels "numpy>=1.21.2"; fi); python -c "import pytest" >/dev/null 2>&1 || pip install pytest pytest-cov pytest-mpi; cd /tmp; python -m pytest -v --tb=short ../project/h5py/tests'"""
 
 [tool.cibuildwheel.linux]
 environment-pass = [
