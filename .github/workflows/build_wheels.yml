@@ -283,6 +283,10 @@ jobs:
             rm -rf build dist .mesonpy-* _skbuild
           done
 
+      - name: List built numpy wheels
+        if: matrix.arch == 'ppc64le'
+        run: |
+          ls -l numpy_wheels
       - name: ⚙️ Setup venv for h5py build
         if: matrix.arch == 'ppc64le'
         run: |
