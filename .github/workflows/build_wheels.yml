@@ -159,44 +159,44 @@ jobs:
           # If tests should be skipped on ppc64le, uncomment:
           # CIBW_TEST_SKIP: "cp*-manylinux_ppc64le"
 
-      - name: 🧱 Setup Python and system dependencies (ppc64le)
-        if: matrix.arch == 'ppc64le'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y software-properties-common pkg-config
-          sudo add-apt-repository ppa:deadsnakes/ppa -y
-          sudo apt-get update
-          sudo apt-get install -y \
-            python3.11 python3.11-dev python3.11-venv \
-            python3.12 python3.12-dev python3.12-venv \
-            python3.13 python3.13-dev python3.13-venv \
-            python3.14 python3.14-dev python3.14-venv \
-            python3-pip
+      # - name: 🧱 Setup Python and system dependencies (ppc64le)
+      #   if: matrix.arch == 'ppc64le'
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y software-properties-common pkg-config
+      #     sudo add-apt-repository ppa:deadsnakes/ppa -y
+      #     sudo apt-get update
+      #     sudo apt-get install -y \
+      #       python3.11 python3.11-dev python3.11-venv \
+      #       python3.12 python3.12-dev python3.12-venv \
+      #       python3.13 python3.13-dev python3.13-venv \
+      #       python3.14 python3.14-dev python3.14-venv \
+      #       python3-pip
         
-      - name: 📥 Clone NumPy repository
-        if: matrix.arch == 'ppc64le'
-        run: |
-          git clone --depth 1 --recurse-submodules https://github.com/numpy/numpy.git
+      # - name: 📥 Clone NumPy repository
+      #   if: matrix.arch == 'ppc64le'
+      #   run: |
+      #     git clone --depth 1 --recurse-submodules https://github.com/numpy/numpy.git
 
-      - name: 🏗️ Build NumPy wheels for all Python versions
-        if: matrix.arch == 'ppc64le'
-        run: |
-          cd numpy
-          for PY in 3.11 3.12 3.13 3.14; do
-            echo "🔹 Building NumPy for Python $PY..."
-            python$PY -m venv venv$PY
-            source venv$PY/bin/activate
+      # - name: 🏗️ Build NumPy wheels for all Python versions
+      #   if: matrix.arch == 'ppc64le'
+      #   run: |
+      #     cd numpy
+      #     for PY in 3.11 3.12 3.13 3.14; do
+      #       echo "🔹 Building NumPy for Python $PY..."
+      #       python$PY -m venv venv$PY
+      #       source venv$PY/bin/activate
 
-            pip install -U pip setuptools wheel meson ninja meson-python Cython build
-            export MESONPY_USE_SYSTEM_MESON=1
-            python -m build --wheel --no-isolation -v
+      #       pip install -U pip setuptools wheel meson ninja meson-python Cython build
+      #       export MESONPY_USE_SYSTEM_MESON=1
+      #       python -m build --wheel --no-isolation -v
 
-            mkdir -p ../numpy_wheels
-            cp dist/*.whl ../numpy_wheels/
+      #       mkdir -p ../numpy_wheels
+      #       cp dist/*.whl ../numpy_wheels/
 
-            deactivate
-            rm -rf build dist .mesonpy-* _skbuild
-          done
+      #       deactivate
+      #       rm -rf build dist .mesonpy-* _skbuild
+      #     done
 
 
       # - name: Install auditwheel (ppc64le)
@@ -212,16 +212,20 @@ jobs:
       #       rm "$whl"
       #     done
 
-      - name: List built numpy wheels
-        if: matrix.arch == 'ppc64le'
-        run: |
-          ls -l numpy_wheels
-      - name: ⚙️ Setup venv for h5py build
-        if: matrix.arch == 'ppc64le'
+      # - name: List built numpy wheels
+      #   if: matrix.arch == 'ppc64le'
+      #   run: |
+      #     ls -l numpy_wheels
+      - if: matrix.arch == 'ppc64le'
         run: |
           python3.12 -m venv venv
           source venv/bin/activate
           pip install -U pip setuptools wheel cibuildwheel
+
+      - name: Debug UV_NO_BUILD_PACKAGE (ppc64le)
+        if: matrix.arch == 'ppc64le'
+        run: |
+          echo "UV_NO_BUILD_PACKAGE=$UV_NO_BUILD_PACKAGE"
 
       - name: 🧩 Build h5py wheels using prebuilt NumPy
         if: matrix.arch == 'ppc64le'
