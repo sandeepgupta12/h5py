@@ -199,18 +199,18 @@ jobs:
           done
 
 
-      - name: Install auditwheel (ppc64le)
-        if: matrix.arch == 'ppc64le'
-        run: |
-          pip install auditwheel
+      # - name: Install auditwheel (ppc64le)
+      #   if: matrix.arch == 'ppc64le'
+      #   run: |
+      #     pip install auditwheel
 
-      - name: Repair numpy wheels with auditwheel (ppc64le)
-        if: matrix.arch == 'ppc64le'
-        run: |
-          for whl in numpy_wheels/*.whl; do
-            auditwheel repair "$whl" --plat manylinux_2_28_ppc64le -w numpy_wheels/
-            rm "$whl"
-          done
+      # - name: Repair numpy wheels with auditwheel (ppc64le)
+      #   if: matrix.arch == 'ppc64le'
+      #   run: |
+      #     for whl in numpy_wheels/*.whl; do
+      #       auditwheel repair "$whl" --plat manylinux_2_28_ppc64le -w numpy_wheels/
+      #       rm "$whl"
+      #     done
 
       - name: List built numpy wheels
         if: matrix.arch == 'ppc64le'
