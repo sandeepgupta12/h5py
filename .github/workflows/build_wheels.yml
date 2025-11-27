@@ -283,6 +283,31 @@ jobs:
             rm -rf build dist .mesonpy-* _skbuild
           done
 
+      - name: Build numpy wheels inside manylinux_2_28_ppc64le Docker image
+        if: matrix.arch == 'ppc64le'
+        run: |
+          docker run --rm -v $PWD:/project quay.io/pypa/manylinux_2_28_ppc64le bash -c "\
+            cd /project/numpy && \
+            for PY in 3.11 3.12 3.13 3.14; do \
+              /opt/python/cp${PY/./}-cp${PY/./}m/bin/python -m venv venv$PY && \
+              source venv$PY/bin/activate && \
+              pip install -U pip setuptools wheel meson ninja meson-python Cython build && \
+              python -m build --wheel --no-isolation -v && \
+              mkdir -p /project/numpy_wheels && \
+              cp dist/*.whl /project/numpy_wheels/ && \
+              deactivate && \
+              rm -rf build dist .mesonpy-* _skbuild; \
+            done"
+
+      - name: Repair numpy wheels with auditwheel (ppc64le)
+        if: matrix.arch == 'ppc64le'
+        run: |
+          docker run --rm -v $PWD:/project quay.io/pypa/manylinux_2_28_ppc64le bash -c "\
+            for whl in /project/numpy_wheels/*.whl; do \
+              auditwheel repair \"$whl\" --plat manylinux_2_28_ppc64le -w /project/numpy_wheels/ && \
+              rm \"$whl\"; \
+            done"
+
       - name: Install auditwheel (ppc64le)
         if: matrix.arch == 'ppc64le'
         run: |
