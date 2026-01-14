@@ -146,9 +146,13 @@ jobs:
       # - Python 3.11 → NumPy 2.4.x
       # - Python >=3.12 → NumPy main (2.5+)
       # ------------------------------------------------------------
+      # ppc64le builds NumPy from source because official wheels are not available.
+      # This is intentionally separated from cibuildwheel to avoid repeated rebuilds.
+
       - name: Build NumPy wheels (ppc64le)
         if: matrix.arch == 'ppc64le'
         run: |
+          set -euo pipefail
           mkdir -p numpy_wheels
 
           build_numpy () {
@@ -162,7 +166,7 @@ jobs:
             source venv$PY/bin/activate
 
             pip install -U pip setuptools wheel meson ninja meson-python Cython build
-            export MESONPY_USE_SYSTEM_MESON=1
+            
             python -m build --wheel --no-isolation -v
 
             cp dist/*.whl ../numpy_wheels/
@@ -181,30 +185,6 @@ jobs:
           for PY in 3.12 3.13 3.14; do
             build_numpy $PY numpy-main
           done
-      # - name: Clone NumPy repository
-      #   if: matrix.arch == 'ppc64le'
-      #   run: |
-      #     git clone --depth 1 --recurse-submodules https://github.com/numpy/numpy.git
-
-      # - name: Build NumPy wheels for all Python versions
-      #   if: matrix.arch == 'ppc64le'
-      #   run: |
-      #     cd numpy
-      #     for PY in 3.11 3.12 3.13 3.14; do
-      #       echo "🔹 Building NumPy for Python $PY..."
-      #       python$PY -m venv venv$PY
-      #       source venv$PY/bin/activate
-
-      #       pip install -U pip setuptools wheel meson ninja meson-python Cython build
-      #       export MESONPY_USE_SYSTEM_MESON=1
-      #       python -m build --wheel --no-isolation -v
-
-      #       mkdir -p ../numpy_wheels
-      #       cp dist/*.whl ../numpy_wheels/
-
-      #       deactivate
-      #       rm -rf build dist .mesonpy-* _skbuild
-      #     done
       
       - name:   Setup venv for h5py build
         if: matrix.arch == 'ppc64le'
