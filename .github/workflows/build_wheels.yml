@@ -149,7 +149,7 @@ jobs:
       # ppc64le builds NumPy from source because official wheels are not available.
       # This is intentionally separated from cibuildwheel to avoid repeated rebuilds.
 
-      - name: Build NumPy wheels (ppc64le)
+      - name: Build NumPy wheels from source (ppc64le)
         if: matrix.arch == 'ppc64le'
         run: |
           set -euo pipefail
@@ -186,14 +186,14 @@ jobs:
             build_numpy $PY numpy-main
           done
       
-      - name:   Setup venv for h5py build
+      - name: Setup venv for h5py build
         if: matrix.arch == 'ppc64le'
         run: |
           python3.12 -m venv venv
           source venv/bin/activate
           pip install -U pip setuptools wheel cibuildwheel
 
-      - name: 🧩 Build h5py wheels using prebuilt NumPy
+      - name: Build h5py wheels using locally built NumPy (ppc64le)
         if: matrix.arch == 'ppc64le'
         run: |
           source venv/bin/activate
