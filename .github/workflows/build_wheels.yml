@@ -133,6 +133,7 @@ jobs:
           sudo add-apt-repository ppa:deadsnakes/ppa -y
           sudo apt-get update
           sudo apt-get install -y \
+            python3.10 python3.10-dev python3.10-venv \
             python3.11 python3.11-dev python3.11-venv \
             python3.12 python3.12-dev python3.12-venv \
             python3.13 python3.13-dev python3.13-venv \
@@ -176,9 +177,9 @@ jobs:
             cd ..
           }
 
-          # NumPy 2.4.x for Python 3.11
+          # NumPy 2.4.x for Python 3.10
           git clone --depth 1 --branch v2.4.1 --recurse-submodules https://github.com/numpy/numpy.git numpy-2.4.1
-          build_numpy 3.11 numpy-2.4.1
+          build_numpy 3.10 numpy-2.4.1
 
           # NumPy main for Python >= 3.12
           git clone --depth 1 --recurse-submodules https://github.com/numpy/numpy.git numpy-main
