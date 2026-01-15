@@ -177,9 +177,9 @@ jobs:
             cd ..
           }
 
-          # NumPy 2.4.x for Python 3.10
+          # NumPy 2.4.x for Python 3.11
           git clone --depth 1 --branch v2.4.1 --recurse-submodules https://github.com/numpy/numpy.git numpy-2.4.1
-          build_numpy 3.10 numpy-2.4.1
+          build_numpy 3.11 numpy-2.4.1
 
           # NumPy main for Python >= 3.12
           git clone --depth 1 --recurse-submodules https://github.com/numpy/numpy.git numpy-main
@@ -192,7 +192,7 @@ jobs:
         run: |
           python3.12 -m venv venv
           source venv/bin/activate
-          pip install -U pip setuptools wheel cibuildwheel
+          pip install -U pip cibuildwheel
 
       - name: Build h5py wheels using locally built NumPy (ppc64le)
         if: matrix.arch == 'ppc64le'
