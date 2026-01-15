@@ -178,7 +178,7 @@ jobs:
           }
 
           # NumPy 2.4.x for Python 3.11
-          git clone --depth 1 --branch v2.4.1 --recurse-submodules https://github.com/numpy/numpy.git numpy-2.4.1
+          git clone https://github.com/numpy/numpy/commit/d24bb7f48d3b0e3471c68f1309c130d0b65ee72a numpy-2.4.1
           build_numpy 3.11 numpy-2.4.1
 
           # NumPy main for Python >= 3.12
