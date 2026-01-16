@@ -179,6 +179,8 @@ jobs:
           git clone https://github.com/numpy/numpy.git numpy-src
           cd numpy-src
           git checkout d24bb7f48d3b0e3471c68f1309c130d0b65ee72a
+          git submodule update --init --recursive
+          cd ..
 
           # Build NumPy 2.4.1 for all supported Python versions
           for PY in 3.11 3.12 3.13 3.14; do
