@@ -207,13 +207,18 @@ jobs:
             cd ..
           }
           # NumPy 2.4.x for Python 3.11
-          git clone --depth 1 --branch v2.4.1 --recurse-submodules https://github.com/numpy/numpy.git numpy-2.4.1
-          build_numpy 3.11 numpy-2.4.1
+          # git clone --depth 1 --branch v2.4.1 --recurse-submodules https://github.com/numpy/numpy.git numpy-2.4.1
+          git clone https://github.com/numpy/numpy.git numpy-src
+          cd numpy-src
+          git checkout d24bb7f48d3b0e3471c68f1309c130d0b65ee72a
+          git submodule update --init --recursive
+          cd ..
+          build_numpy 3.11 numpy-src
           # NumPy main for Python >= 3.12
-          git clone --depth 1 --recurse-submodules https://github.com/numpy/numpy.git numpy-main
-          for PY in 3.12 3.13 3.14; do
-            build_numpy $PY numpy-main
-          done
+          # git clone --depth 1 --recurse-submodules https://github.com/numpy/numpy.git numpy-main
+          # for PY in 3.12 3.13 3.14; do
+          #   build_numpy $PY numpy-main
+          # done
       
       - name: Setup venv for h5py build
         if: matrix.arch == 'ppc64le'
