@@ -166,7 +166,7 @@ jobs:
             python$PY -m venv venv$PY
             source venv$PY/bin/activate
 
-            pip install -U pip setuptools wheel meson ninja meson-python Cython build
+            pip install -U pip setuptools wheel pkgconfig meson ninja meson-python Cython build
             python -m build --wheel --no-isolation -v
 
             cp dist/*.whl ../numpy_wheels/
