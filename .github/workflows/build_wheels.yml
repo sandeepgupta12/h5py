@@ -153,40 +153,67 @@ jobs:
       # Build NumPy wheels from source (ppc64le)
       # Reproducible: pinned to NumPy 2.4.1 commit
       # ------------------------------------------------------------
+      # - name: Build NumPy wheels from source (ppc64le)
+      #   if: matrix.arch == 'ppc64le'
+      #   run: |
+      #     set -euo pipefail
+      #     mkdir -p numpy_wheels
+
+      #     build_numpy () {
+      #       local PY=$1
+
+      #       echo "🔹 Building NumPy for Python $PY"
+      #       python$PY -m venv venv$PY
+      #       source venv$PY/bin/activate
+
+      #       pip install -U pip setuptools wheel pkgconfig meson ninja meson-python Cython build
+      #       python -m build --wheel --no-isolation -v
+
+      #       cp dist/*.whl ../numpy_wheels/
+      #       deactivate
+
+      #       rm -rf build dist .mesonpy-* _skbuild venv$PY
+      #     }
+
+      #     # Clone NumPy once, pinned to a specific commit (2.4.1)
+      #     git clone https://github.com/numpy/numpy.git numpy-src
+      #     cd numpy-src
+      #     git checkout d24bb7f48d3b0e3471c68f1309c130d0b65ee72a
+      #     git submodule update --init --recursive
+      #     cd ..
+
+      #     # Build NumPy 2.4.1 for all supported Python versions
+      #     for PY in 3.11 3.12 3.13 3.14; do
+      #       build_numpy $PY
+      #     done
       - name: Build NumPy wheels from source (ppc64le)
         if: matrix.arch == 'ppc64le'
         run: |
           set -euo pipefail
           mkdir -p numpy_wheels
-
           build_numpy () {
             local PY=$1
-
-            echo "🔹 Building NumPy for Python $PY"
+            local DIR=$2
+            echo "🔹 Building NumPy in $DIR for Python $PY"
+            cd "$DIR"
             python$PY -m venv venv$PY
             source venv$PY/bin/activate
-
-            pip install -U pip setuptools wheel pkgconfig meson ninja meson-python Cython build
+            pip install -U pip setuptools wheel meson ninja meson-python Cython build
+            
             python -m build --wheel --no-isolation -v
-
             cp dist/*.whl ../numpy_wheels/
             deactivate
-
             rm -rf build dist .mesonpy-* _skbuild venv$PY
+            cd ..
           }
-
-          # Clone NumPy once, pinned to a specific commit (2.4.1)
-          git clone https://github.com/numpy/numpy.git numpy-src
-          cd numpy-src
-          git checkout d24bb7f48d3b0e3471c68f1309c130d0b65ee72a
-          git submodule update --init --recursive
-          cd ..
-
-          # Build NumPy 2.4.1 for all supported Python versions
-          for PY in 3.11 3.12 3.13 3.14; do
-            build_numpy $PY
+          # NumPy 2.4.x for Python 3.11
+          git clone --depth 1 --branch v2.4.1 --recurse-submodules https://github.com/numpy/numpy.git numpy-2.4.1
+          build_numpy 3.11 numpy-2.4.1
+          # NumPy main for Python >= 3.12
+          git clone --depth 1 --recurse-submodules https://github.com/numpy/numpy.git numpy-main
+          for PY in 3.12 3.13 3.14; do
+            build_numpy $PY numpy-main
           done
-
       
       - name: Setup venv for h5py build
         if: matrix.arch == 'ppc64le'
