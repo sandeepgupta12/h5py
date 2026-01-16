@@ -150,6 +150,10 @@ jobs:
       # ppc64le builds NumPy from source because official wheels are not available.
       # This is intentionally separated from cibuildwheel to avoid repeated rebuilds.
 
+      # ------------------------------------------------------------
+      # Build NumPy wheels from source (ppc64le)
+      # Reproducible: pinned to NumPy 2.4.1 commit
+      # ------------------------------------------------------------
       - name: Build NumPy wheels from source (ppc64le)
         if: matrix.arch == 'ppc64le'
         run: |
@@ -158,36 +162,30 @@ jobs:
 
           build_numpy () {
             local PY=$1
-            local DIR=$2
 
-            echo "🔹 Building NumPy in $DIR for Python $PY"
-            cd "$DIR"
-
+            echo "🔹 Building NumPy for Python $PY"
             python$PY -m venv venv$PY
             source venv$PY/bin/activate
 
             pip install -U pip setuptools wheel meson ninja meson-python Cython build
-            
             python -m build --wheel --no-isolation -v
 
             cp dist/*.whl ../numpy_wheels/
             deactivate
 
             rm -rf build dist .mesonpy-* _skbuild venv$PY
-            cd ..
           }
 
-          # NumPy 2.4.x for Python 3.11
-          git clone https://github.com/numpy/numpy.git numpy-2.4.1
-          cd numpy-2.4.1
+          # Clone NumPy once, pinned to a specific commit (2.4.1)
+          git clone https://github.com/numpy/numpy.git numpy-src
+          cd numpy-src
           git checkout d24bb7f48d3b0e3471c68f1309c130d0b65ee72a
-          build_numpy 3.11 numpy-2.4.1
 
-          # NumPy main for Python >= 3.12
-          git clone --depth 1 --recurse-submodules https://github.com/numpy/numpy.git numpy-main
-          for PY in 3.12 3.13 3.14; do
-            build_numpy $PY numpy-main
+          # Build NumPy 2.4.1 for all supported Python versions
+          for PY in 3.11 3.12 3.13 3.14; do
+            build_numpy $PY
           done
+
       
       - name: Setup venv for h5py build
         if: matrix.arch == 'ppc64le'
