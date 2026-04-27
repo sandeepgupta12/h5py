@@ -144,10 +144,10 @@ jobs:
         if: matrix.arch == 'ppc64le'
         run: |
           # Extract version requirements from pyproject.toml
-          NUMPY_REQ=$(grep -A5 "requires = \[" pyproject.toml | grep numpy | sed 's/.*"\(.*\)".*/\1/')
-          CYTHON_REQ=$(grep -A5 "requires = \[" pyproject.toml | grep Cython | sed 's/.*"\(.*\)".*/\1/')
-          PKGCONFIG_REQ=$(grep -A5 "requires = \[" pyproject.toml | grep pkgconfig | sed 's/.*"\(.*\)".*/\1/')
-          SETUPTOOLS_REQ=$(grep -A5 "requires = \[" pyproject.toml | grep setuptools | sed 's/.*"\(.*\)".*/\1/')
+          NUMPY_REQ=$(grep -A5 "requires = \[" pyproject.toml | grep '"numpy' | sed 's/.*"numpy \(.*\)".*/\1/')
+          CYTHON_REQ=$(grep -A5 "requires = \[" pyproject.toml | grep '"Cython' | sed 's/.*"Cython \(.*\)".*/\1/')
+          PKGCONFIG_REQ=$(grep -A5 "requires = \[" pyproject.toml | grep '"pkgconfig' | sed 's/.*"pkgconfig \(.*\)".*/\1/')
+          SETUPTOOLS_REQ=$(grep -A5 "requires = \[" pyproject.toml | grep '"setuptools' | sed 's/.*"setuptools \(.*\)".*/\1/')
           
           echo "Checking devpi for required packages..."
           echo "NumPy: $NUMPY_REQ"
