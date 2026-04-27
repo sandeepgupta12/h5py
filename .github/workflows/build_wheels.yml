@@ -174,12 +174,21 @@ jobs:
       
       # Build wheels using cibuildwheel (unified for all platforms)
       - uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e # v3.3.1
+        if: matrix.arch != 'ppc64le'
+      
+      # Build wheels for ppc64le using cibuildwheel with native runner
+      - uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e # v3.3.1
+        if: matrix.arch == 'ppc64le'
         env:
-          # ppc64le-specific environment variables
-          CIBW_ARCHS_LINUX: ${{ matrix.arch == 'ppc64le' && 'ppc64le' || matrix.arch }}
-          CIBW_ENVIRONMENT_PASS_LINUX: ${{ matrix.arch == 'ppc64le' && 'PIP_INDEX_URL PIP_EXTRA_INDEX_URL' || '' }}
-          CIBW_BEFORE_BUILD_LINUX: ${{ matrix.arch == 'ppc64le' && 'pip config set global.index-url https://devpi.net/ibm/community/+simple/ && pip config set global.extra-index-url https://pypi.org/simple' || '' }}
-          CIBW_BEFORE_TEST_LINUX: ${{ matrix.arch == 'ppc64le' && 'pip config set global.index-url https://devpi.net/ibm/community/+simple/ && pip config set global.extra-index-url https://pypi.org/simple' || '' }}
+          CIBW_ARCHS_LINUX: ppc64le
+          CIBW_BUILD: "cp311-manylinux_ppc64le cp312-manylinux_ppc64le cp313-manylinux_ppc64le cp314-manylinux_ppc64le"
+          CIBW_ENVIRONMENT_PASS_LINUX: "PIP_INDEX_URL PIP_EXTRA_INDEX_URL"
+          CIBW_BEFORE_BUILD: |
+            pip config set global.index-url https://devpi.net/ibm/community/+simple/
+            pip config set global.extra-index-url https://pypi.org/simple
+          CIBW_BEFORE_TEST: |
+            pip config set global.index-url https://devpi.net/ibm/community/+simple/
+            pip config set global.extra-index-url https://pypi.org/simple
 
       - run: python ./ci/bundle_hdf5_whl.py wheelhouse
         if: runner.os == 'Windows'
