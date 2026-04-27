@@ -80,11 +80,9 @@ jobs:
             arch: arm64
           - os: macos-15-intel
             arch: x86_64
-          # ppc64le build - controlled by ENABLE_PPC64LE env var
-          - os: ${{ fromJSON('["self-hosted", ""]')[vars.ENABLE_PPC64LE == 'false' || 1] }}
+          # ppc64le: To disable, comment out this entry or set ENABLE_PPC64LE=false in env vars
+          - os: self-hosted
             arch: ppc64le
-        exclude:
-          - os: ""
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
