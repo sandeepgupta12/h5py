@@ -4,6 +4,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.number }}-${{ github.event.ref }}
   cancel-in-progress: true
 
+env:
+  # Feature flags for platform builds
+  ENABLE_PPC64LE: true  # Set to false to skip ppc64le builds
+ 
 # Adapted from https://github.com/matplotlib/matplotlib/blob/main/.github/workflows/nightlies.yml
 # and https://cibuildwheel.pypa.io/en/stable/setup/#github-actions
 
@@ -76,8 +80,11 @@ jobs:
             arch: arm64
           - os: macos-15-intel
             arch: x86_64
-          - os: self-hosted
+          # ppc64le build - controlled by ENABLE_PPC64LE env var
+          - os: ${{ fromJSON('["self-hosted", ""]')[vars.ENABLE_PPC64LE == 'false' || 1] }}
             arch: ppc64le
+        exclude:
+          - os: ""
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
@@ -120,57 +127,10 @@ jobs:
 
       # Triage build
       - run: bash ./ci/triage_build.sh "${{ matrix.arch }}" "${{ github.event.pull_request.head.sha || github.sha }}"
-
-      # Now actually build the wheels
-      # ------------------------------------------------------------
-      # Build wheels for IBM Power (ppc64le) using devpi repository
-      # Reference: https://community.ibm.com/community/user/blogs/janani-janakiraman/2025/09/10/developing-apps-using-python-packages-on-ibm-power
-      #
-      # IMPORTANT: This build uses IBM's devpi repository which may not have
-      # all package versions available on PyPI. If builds fail due to missing
-      # packages, contact IBM support or temporarily disable ppc64le builds.
-      #
-      # Package requirements are defined in pyproject.toml [build-system.requires]
-      # ------------------------------------------------------------
-      
-      # Validate devpi package availability before building (ppc64le)
-      - name: Validate devpi package availability (ppc64le)
-        if: matrix.arch == 'ppc64le'
-        run: |
-          python3 --version
-          
-          # Extract version requirements from pyproject.toml
-          NUMPY_REQ=$(grep -A5 "requires = \[" pyproject.toml | grep '"numpy' | sed 's/.*"numpy \(.*\)".*/\1/')
-          CYTHON_REQ=$(grep -A5 "requires = \[" pyproject.toml | grep '"Cython' | sed 's/.*"Cython \(.*\)".*/\1/')
-          PKGCONFIG_REQ=$(grep -A5 "requires = \[" pyproject.toml | grep '"pkgconfig' | sed 's/.*"pkgconfig \(.*\)".*/\1/')
-          SETUPTOOLS_REQ=$(grep -A5 "requires = \[" pyproject.toml | grep '"setuptools' | sed 's/.*"setuptools \(.*\)".*/\1/')
-          
-          echo "Validating devpi has required packages..."
-          echo "  NumPy: $NUMPY_REQ"
-          echo "  Cython: $CYTHON_REQ"
-          echo "  pkgconfig: $PKGCONFIG_REQ"
-          echo "  setuptools: $SETUPTOOLS_REQ"
-          
-          # Configure pip to use devpi with PyPI fallback
-          python3 -m pip config set global.index-url https://devpi.net/ibm/community/+simple/
-          python3 -m pip config set global.extra-index-url https://pypi.org/simple
-          
-          # Try to resolve dependencies (dry-run)
-          python3 -m pip install --dry-run --ignore-installed \
-            "numpy$NUMPY_REQ" \
-            "Cython$CYTHON_REQ" \
-            "pkgconfig$PKGCONFIG_REQ" \
-            "setuptools$SETUPTOOLS_REQ" || {
-            echo "❌ ERROR: Required packages not available in devpi repository!"
-            echo "Please contact IBM to update devpi or update pyproject.toml requirements."
-            exit 1
-          }
-          
-          echo "✅ All required packages available in devpi"
       
       # Setup cibuildwheel for ppc64le (manual installation to avoid setup-python action)
       - name: Setup cibuildwheel (ppc64le)
-        if: matrix.arch == 'ppc64le'
+        if: matrix.arch == 'ppc64le' && env.ENABLE_PPC64LE == 'true'
         run: |
           python3 -m pip install --upgrade pip setuptools wheel
           python3 -m pip install cibuildwheel
@@ -181,7 +141,7 @@ jobs:
       
       # Build wheels for ppc64le using cibuildwheel command (not action to avoid setup-python)
       - name: Build wheels with cibuildwheel (ppc64le)
-        if: matrix.arch == 'ppc64le'
+        if: matrix.arch == 'ppc64le' && env.ENABLE_PPC64LE == 'true'
         run: python3 -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_ARCHS_LINUX: ppc64le
