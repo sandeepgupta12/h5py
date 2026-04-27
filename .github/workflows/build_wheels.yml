@@ -145,7 +145,8 @@ jobs:
           CIBW_ARCHS_LINUX: ppc64le
           CIBW_BUILD: "cp311-manylinux_ppc64le cp312-manylinux_ppc64le cp313-manylinux_ppc64le cp314-manylinux_ppc64le"
           CIBW_BUILD_FRONTEND: "pip"
-          CIBW_ENVIRONMENT_PASS_LINUX: "PIP_INDEX_URL PIP_EXTRA_INDEX_URL"
+          # Pass environment variables to test
+          CIBW_ENVIRONMENT_PASS_LINUX: "UV_INDEX_URL UV_EXTRA_INDEX_URL GITHUB_ACTIONS ONLY_MINDEPS_TESTS"
           CIBW_BEFORE_BUILD: |
             pip config set global.index-url https://devpi.net/ibm/community/+simple/
             pip config set global.extra-index-url https://pypi.org/simple
@@ -153,8 +154,13 @@ jobs:
           CIBW_BEFORE_TEST: |
             pip config set global.index-url https://devpi.net/ibm/community/+simple/
             pip config set global.extra-index-url https://pypi.org/simple
+          # Set UV environment variables for tox/uv
+          CIBW_ENVIRONMENT_LINUX: >
+            UV_INDEX_URL=https://devpi.net/ibm/community/+simple/
+            UV_EXTRA_INDEX_URL=https://pypi.org/simple
+          # Set environment variables for test
+          CIBW_TEST_REQUIRES: "tox>=4.26.0 tox-uv>=1.27.0 codecov>=2.1.13 coverage>=7.9.1"
           # Use the same test command as other platforms (from pyproject.toml)
-          # test-command = "bash {project}/ci/cibw_test_command.sh {project} {wheel}"
           CIBW_TEST_COMMAND: "bash {project}/ci/cibw_test_command.sh {project} {wheel}"
 
       - run: python ./ci/bundle_hdf5_whl.py wheelhouse
