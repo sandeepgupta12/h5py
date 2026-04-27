@@ -122,57 +122,64 @@ jobs:
       - run: bash ./ci/triage_build.sh "${{ matrix.arch }}" "${{ github.event.pull_request.head.sha || github.sha }}"
 
       # Now actually build the wheels
-      - uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e # v3.3.1
-        if: matrix.arch != 'ppc64le'
-      
       # ------------------------------------------------------------
       # Build wheels for IBM Power (ppc64le) using devpi repository
       # Reference: https://community.ibm.com/community/user/blogs/janani-janakiraman/2025/09/10/developing-apps-using-python-packages-on-ibm-power
+      #
+      # IMPORTANT: This build uses IBM's devpi repository which may not have
+      # all package versions available on PyPI. If builds fail due to missing
+      # packages, contact IBM support or temporarily disable ppc64le builds.
+      #
+      # Package requirements are defined in pyproject.toml [build-system.requires]
       # ------------------------------------------------------------
       
-      - name: Setup Python and system dependencies (ppc64le)
+      # Setup Python for ppc64le using IBM's setup-python-pz action
+      - uses: IBM/setup-python-pz@v1
+        with:
+          python-version: '3.12'
         if: matrix.arch == 'ppc64le'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y software-properties-common pkg-config
-          sudo add-apt-repository ppa:deadsnakes/ppa -y
-          sudo apt-get update
-          sudo apt-get install -y \
-            python3.11 python3.11-dev python3.11-venv \
-            python3.12 python3.12-dev python3.12-venv \
-            python3.13 python3.13-dev python3.13-venv \
-            python3.14 python3.14-dev python3.14-venv \
-            python3-pip
       
-      - name: Setup venv for h5py build (ppc64le)
+      # Validate devpi package availability before building (ppc64le)
+      - name: Validate devpi package availability (ppc64le)
         if: matrix.arch == 'ppc64le'
         run: |
-          python3.12 -m venv venv
-          source venv/bin/activate
-          pip install -U pip setuptools wheel cibuildwheel
+          # Extract version requirements from pyproject.toml
+          NUMPY_REQ=$(grep -A5 "requires = \[" pyproject.toml | grep numpy | sed 's/.*"\(.*\)".*/\1/')
+          CYTHON_REQ=$(grep -A5 "requires = \[" pyproject.toml | grep Cython | sed 's/.*"\(.*\)".*/\1/')
+          PKGCONFIG_REQ=$(grep -A5 "requires = \[" pyproject.toml | grep pkgconfig | sed 's/.*"\(.*\)".*/\1/')
+          SETUPTOOLS_REQ=$(grep -A5 "requires = \[" pyproject.toml | grep setuptools | sed 's/.*"\(.*\)".*/\1/')
+          
+          echo "Checking devpi for required packages..."
+          echo "NumPy: $NUMPY_REQ"
+          echo "Cython: $CYTHON_REQ"
+          echo "pkgconfig: $PKGCONFIG_REQ"
+          echo "setuptools: $SETUPTOOLS_REQ"
+          
+          # Configure pip to use devpi with PyPI fallback
+          pip config set global.index-url https://devpi.net/ibm/community/+simple/
+          pip config set global.extra-index-url https://pypi.org/simple
+          
+          # Try to resolve dependencies (dry-run)
+          pip install --dry-run --ignore-installed \
+            "numpy$NUMPY_REQ" \
+            "Cython$CYTHON_REQ" \
+            "pkgconfig$PKGCONFIG_REQ" \
+            "setuptools$SETUPTOOLS_REQ" || {
+            echo "ERROR: Required packages not available in devpi repository!"
+            echo "Please contact IBM to update devpi or update pyproject.toml requirements."
+            exit 1
+          }
+          
+          echo "✓ All required packages available in devpi"
       
-      - name: Build h5py wheels using devpi NumPy (ppc64le)
-        if: matrix.arch == 'ppc64le'
-        run: |
-          source venv/bin/activate
-          cibuildwheel
+      # Build wheels using cibuildwheel (unified for all platforms)
+      - uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e # v3.3.1
         env:
-          CIBW_ARCHS: ppc64le
-          CIBW_BUILD: "cp311-manylinux_ppc64le cp312-manylinux_ppc64le cp313-manylinux_ppc64le cp314-manylinux_ppc64le"
-          CIBW_BUILD_FRONTEND: "pip"
-          # Use IBM devpi repository for NumPy and other dependencies
-          CIBW_ENVIRONMENT_PASS_LINUX: "PIP_INDEX_URL PIP_EXTRA_INDEX_URL"
-          CIBW_BEFORE_BUILD: |
-            pip config set global.index-url https://devpi.net/ibm/community/+simple/
-            pip config set global.extra-index-url https://pypi.org/simple
-            pip install --upgrade pip setuptools wheel
-            pip install numpy Cython pkgconfig
-          CIBW_BEFORE_TEST: |
-            pip config set global.index-url https://devpi.net/ibm/community/+simple/
-            pip config set global.extra-index-url https://pypi.org/simple
-            pip install numpy
-          CIBW_TEST_COMMAND: "python -c 'import h5py; print(h5py.__version__)'"
-          CIBW_TEST_SKIP: ""
+          # ppc64le-specific environment variables
+          CIBW_ARCHS_LINUX: ${{ matrix.arch == 'ppc64le' && 'ppc64le' || matrix.arch }}
+          CIBW_ENVIRONMENT_PASS_LINUX: ${{ matrix.arch == 'ppc64le' && 'PIP_INDEX_URL PIP_EXTRA_INDEX_URL' || '' }}
+          CIBW_BEFORE_BUILD_LINUX: ${{ matrix.arch == 'ppc64le' && 'pip config set global.index-url https://devpi.net/ibm/community/+simple/ && pip config set global.extra-index-url https://pypi.org/simple' || '' }}
+          CIBW_BEFORE_TEST_LINUX: ${{ matrix.arch == 'ppc64le' && 'pip config set global.index-url https://devpi.net/ibm/community/+simple/ && pip config set global.extra-index-url https://pypi.org/simple' || '' }}
 
       - run: python ./ci/bundle_hdf5_whl.py wheelhouse
         if: runner.os == 'Windows'
