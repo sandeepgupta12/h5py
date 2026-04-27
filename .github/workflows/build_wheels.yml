@@ -134,7 +134,7 @@ jobs:
       # ------------------------------------------------------------
       
       # Setup Python for ppc64le using IBM's setup-python-pz action
-      - uses: IBM/setup-python-pz@v1
+      - uses: ibm/setup-pz@v6
         with:
           python-version: '3.12'
         if: matrix.arch == 'ppc64le'
