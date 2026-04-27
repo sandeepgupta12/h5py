@@ -68,18 +68,19 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            arch: x86_64
-          - os: ubuntu-24.04-arm
-            arch: aarch64
-          - os: windows-latest
-            arch: AMD64
-          - os: windows-11-arm
-            arch: ARM64
-          - os: macos-14
-            arch: arm64
-          - os: macos-15-intel
-            arch: x86_64
+          # Temporarily only building ppc64le for testing
+          # - os: ubuntu-latest
+          #   arch: x86_64
+          # - os: ubuntu-24.04-arm
+          #   arch: aarch64
+          # - os: windows-latest
+          #   arch: AMD64
+          # - os: windows-11-arm
+          #   arch: ARM64
+          # - os: macos-14
+          #   arch: arm64
+          # - os: macos-15-intel
+          #   arch: x86_64
           # ppc64le: To disable, comment out this entry or set ENABLE_PPC64LE=false in env vars
           - os: self-hosted
             arch: ppc64le
@@ -143,7 +144,8 @@ jobs:
         run: python3 -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_ARCHS_LINUX: ppc64le
-          CIBW_BUILD: "cp311-manylinux_ppc64le cp312-manylinux_ppc64le cp313-manylinux_ppc64le cp314-manylinux_ppc64le"
+          # Temporarily only building Python 3.12 for testing
+          CIBW_BUILD: "cp312-manylinux_ppc64le"
           CIBW_BUILD_FRONTEND: "pip"
           CIBW_BEFORE_BUILD: |
             pip config set global.index-url https://devpi.net/ibm/community/+simple/
@@ -166,20 +168,9 @@ jobs:
           path: ./wheelhouse/*.whl
 
   test_ppc64le_wheels:
-    name: 'Test ppc64le wheels: Python ${{ matrix.python }}'
+    name: 'Test ppc64le wheels: Python 3.12'
     needs: build_wheels
     runs-on: self-hosted
-    strategy:
-      matrix:
-        include:
-          - python: '3.11'
-            pyver: 'cp311'
-          - python: '3.12'
-            pyver: 'cp312'
-          - python: '3.13'
-            pyver: 'cp313'
-          - python: '3.14'
-            pyver: 'cp314'
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
@@ -192,32 +183,35 @@ jobs:
           merge-multiple: true
           path: dist
       
-      - name: Setup test environment with devpi (Python ${{ matrix.python }})
+      - name: Setup test environment with devpi
         run: |
-          python${{ matrix.python }} -m venv test-env-${{ matrix.python }}
-          source test-env-${{ matrix.python }}/bin/activate
+          # Create test directory outside source tree to avoid import errors
+          mkdir -p /tmp/h5py-test
+          cd /tmp/h5py-test
+          python3.12 -m venv test-env
+          source test-env/bin/activate
           pip config set global.index-url https://devpi.net/ibm/community/+simple/
           pip config set global.extra-index-url https://pypi.org/simple
           pip install --upgrade pip
-          # Install the wheel for this Python version
-          pip install dist/h5py-*-${{ matrix.pyver }}-*.whl
+          # Install the wheel
+          pip install ${{ github.workspace }}/dist/h5py-*-cp312-*.whl
           # Install test dependencies
           pip install pytest pytest-cov pytest-mpi
       
-      - name: Run test suite (Python ${{ matrix.python }})
+      - name: Run test suite
         run: |
-          source test-env-${{ matrix.python }}/bin/activate
-          cd ${{ github.workspace }}
-          # Run pytest with coverage
-          pytest h5py/tests -v --cov=h5py --cov-report=xml --cov-report=term
+          cd /tmp/h5py-test
+          source test-env/bin/activate
+          # Run pytest from outside source directory to avoid import errors
+          pytest ${{ github.workspace }}/h5py/tests -v --cov=h5py --cov-report=xml --cov-report=term
         continue-on-error: true
       
-      - name: Upload coverage (Python ${{ matrix.python }})
+      - name: Upload coverage
         uses: codecov/codecov-action@v5
         with:
-          files: ./coverage.xml
-          flags: ppc64le,python-${{ matrix.python }}
-          name: ppc64le-py${{ matrix.python }}-coverage
+          files: /tmp/h5py-test/coverage.xml
+          flags: ppc64le,python-3.12
+          name: ppc64le-py312-coverage
         if: always()
 
   check-minimal-build:
