@@ -182,6 +182,9 @@ jobs:
         env:
           CIBW_ARCHS_LINUX: ppc64le
           CIBW_BUILD: "cp311-manylinux_ppc64le cp312-manylinux_ppc64le cp313-manylinux_ppc64le cp314-manylinux_ppc64le"
+          CIBW_PRERELEASE_PYTHONS: "False"
+          # Disable cibuildwheel's Python installation - use container's Python
+          CIBW_DEPENDENCY_VERSIONS: "pinned"
           CIBW_ENVIRONMENT_PASS_LINUX: "PIP_INDEX_URL PIP_EXTRA_INDEX_URL"
           CIBW_BEFORE_BUILD: |
             pip config set global.index-url https://devpi.net/ibm/community/+simple/
@@ -189,6 +192,9 @@ jobs:
           CIBW_BEFORE_TEST: |
             pip config set global.index-url https://devpi.net/ibm/community/+simple/
             pip config set global.extra-index-url https://pypi.org/simple
+        with:
+          # Disable Python installation by cibuildwheel
+          config-file: ""
 
       - run: python ./ci/bundle_hdf5_whl.py wheelhouse
         if: runner.os == 'Windows'
