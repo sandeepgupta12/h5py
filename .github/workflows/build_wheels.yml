@@ -133,8 +133,11 @@ jobs:
       # Package requirements are defined in pyproject.toml [build-system.requires]
       # ------------------------------------------------------------
       
-      # Setup Python for ppc64le - cibuildwheel will handle Python versions internally
-      # No separate Python setup needed as cibuildwheel manages Python environments
+      # Setup Python for ppc64le using IBM's setup-python-pz action
+      - uses: IBM/setup-python-pz@4ca38bfac8eac147e9c7aad9ab246f68655afb36
+        with:
+          python-version: '3.12'
+        if: matrix.arch == 'ppc64le'
       
       # Validate devpi package availability before building (ppc64le)
       - name: Validate devpi package availability (ppc64le)
