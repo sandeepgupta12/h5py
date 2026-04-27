@@ -188,13 +188,20 @@ jobs:
           # Create test directory outside source tree to avoid import errors
           mkdir -p /tmp/h5py-test
           cd /tmp/h5py-test
+          
+          # Copy tests to temp directory
+          cp -r ${{ github.workspace }}/h5py/tests ./tests
+          
+          # Create venv and install
           python3.12 -m venv test-env
           source test-env/bin/activate
           pip config set global.index-url https://devpi.net/ibm/community/+simple/
           pip config set global.extra-index-url https://pypi.org/simple
           pip install --upgrade pip
+          
           # Install the wheel
           pip install ${{ github.workspace }}/dist/h5py-*-cp312-*.whl
+          
           # Install test dependencies
           pip install pytest pytest-cov pytest-mpi
       
@@ -202,8 +209,8 @@ jobs:
         run: |
           cd /tmp/h5py-test
           source test-env/bin/activate
-          # Run pytest from outside source directory to avoid import errors
-          pytest ${{ github.workspace }}/h5py/tests -v --cov=h5py --cov-report=xml --cov-report=term
+          # Run pytest on copied tests (not source directory)
+          pytest tests -v --cov=h5py --cov-report=xml --cov-report=term
         continue-on-error: true
       
       - name: Upload coverage
