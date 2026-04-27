@@ -153,7 +153,9 @@ jobs:
           CIBW_BEFORE_TEST: |
             pip config set global.index-url https://devpi.net/ibm/community/+simple/
             pip config set global.extra-index-url https://pypi.org/simple
-          CIBW_TEST_COMMAND: "python -c 'import h5py; print(h5py.__version__)'"
+          # Use the same test command as other platforms (from pyproject.toml)
+          # test-command = "bash {project}/ci/cibw_test_command.sh {project} {wheel}"
+          CIBW_TEST_COMMAND: "bash {project}/ci/cibw_test_command.sh {project} {wheel}"
 
       - run: python ./ci/bundle_hdf5_whl.py wheelhouse
         if: runner.os == 'Windows'
