@@ -68,20 +68,18 @@ jobs:
     strategy:
       matrix:
         include:
-          # Temporarily only building ppc64le for testing
-          # - os: ubuntu-latest
-          #   arch: x86_64
-          # - os: ubuntu-24.04-arm
-          #   arch: aarch64
-          # - os: windows-latest
-          #   arch: AMD64
-          # - os: windows-11-arm
-          #   arch: ARM64
-          # - os: macos-14
-          #   arch: arm64
-          # - os: macos-15-intel
-          #   arch: x86_64
-          # ppc64le: To disable, comment out this entry or set ENABLE_PPC64LE=false in env vars
+          - os: ubuntu-latest
+            arch: x86_64
+          - os: ubuntu-24.04-arm
+            arch: aarch64
+          - os: windows-latest
+            arch: AMD64
+          - os: windows-11-arm
+            arch: ARM64
+          - os: macos-14
+            arch: arm64
+          - os: macos-15-intel
+            arch: x86_64
           - os: self-hosted
             arch: ppc64le
     steps:
@@ -127,25 +125,23 @@ jobs:
       # Triage build
       - run: bash ./ci/triage_build.sh "${{ matrix.arch }}" "${{ github.event.pull_request.head.sha || github.sha }}"
       
-      # Setup cibuildwheel for ppc64le (manual installation to avoid setup-python action)
-      - name: Setup cibuildwheel (ppc64le)
-        if: matrix.arch == 'ppc64le' && env.ENABLE_PPC64LE == 'true'
-        run: |
-          python3 -m pip install --upgrade pip setuptools wheel
-          python3 -m pip install cibuildwheel
-      
       # Build wheels using cibuildwheel action (standard platforms)
       - uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e # v3.3.1
         if: matrix.arch != 'ppc64le'
       
       # Build wheels for ppc64le using cibuildwheel command (not action to avoid setup-python)
-      - name: Build wheels with cibuildwheel (ppc64le)
+      - name: Build wheels for ppc64le
         if: matrix.arch == 'ppc64le' && env.ENABLE_PPC64LE == 'true'
-        run: python3 -m cibuildwheel --output-dir wheelhouse
+        run: |
+          # Install cibuildwheel
+          python3 -m pip install --upgrade pip setuptools wheel
+          python3 -m pip install cibuildwheel
+          
+          # Build wheels
+          python3 -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_ARCHS_LINUX: ppc64le
-          # Temporarily only building Python 3.12 for testing
-          CIBW_BUILD: "cp312-manylinux_ppc64le"
+          CIBW_BUILD: "cp311-manylinux_ppc64le cp312-manylinux_ppc64le cp313-manylinux_ppc64le cp314-manylinux_ppc64le"
           CIBW_BUILD_FRONTEND: "pip"
           CIBW_BEFORE_BUILD: |
             pip config set global.index-url https://devpi.net/ibm/community/+simple/
@@ -154,8 +150,7 @@ jobs:
           CIBW_BEFORE_TEST: |
             pip config set global.index-url https://devpi.net/ibm/community/+simple/
             pip config set global.extra-index-url https://pypi.org/simple
-          # Simple import test for ppc64le (full test suite requires uv config which is complex)
-          # TODO: Enable full test suite once uv index configuration is resolved
+          # Simple import test for ppc64le
           CIBW_TEST_COMMAND: "python -c 'import h5py; import numpy; print(f\"h5py {h5py.__version__} with NumPy {numpy.__version__}\")'"
 
       - run: python ./ci/bundle_hdf5_whl.py wheelhouse
