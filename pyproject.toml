@@ -150,6 +150,8 @@ test-command = "python -c 'import h5py; import numpy; print(f\"h5py {h5py.__vers
 environment-pass = [
     "GITHUB_ACTIONS",
     "ONLY_MINDEPS_TESTS",
+    "PIP_INDEX_URL",
+    "PIP_EXTRA_INDEX_URL",
 ]
 
 [tool.cibuildwheel.linux.environment]
