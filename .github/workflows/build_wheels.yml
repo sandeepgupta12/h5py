@@ -129,12 +129,15 @@ jobs:
       - uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e # v3.3.1
         if: matrix.arch != 'ppc64le'
 
-      # Build wheels for ppc64le (uses devpi for NumPy, config in pyproject.toml)
+      # Build wheels for ppc64le (uses devpi for NumPy)
       - name: Build wheels for ppc64le
         if: matrix.arch == 'ppc64le' && env.ENABLE_PPC64LE == 'true'
         run: |
           python3 -m pip install --upgrade pip setuptools wheel cibuildwheel
           python3 -m cibuildwheel --output-dir wheelhouse
+        env:
+          PIP_INDEX_URL: https://devpi.net/ibm/community/+simple/
+          PIP_EXTRA_INDEX_URL: https://pypi.org/simple
 
       - run: python ./ci/bundle_hdf5_whl.py wheelhouse
         if: runner.os == 'Windows'
