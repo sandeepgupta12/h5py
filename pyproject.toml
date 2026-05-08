@@ -141,12 +141,6 @@ musllinux-ppc64le-image = "ghcr.io/h5py/musllinux_1_2_ppc64le-hdf5"
 test-groups = ["wheels"]
 test-command = "bash {project}/ci/cibw_test_command.sh {project} {wheel}"
 
-# ppc64le-specific configuration
-[[tool.cibuildwheel.overrides]]
-select = "*-manylinux_ppc64le"
-config-settings = { "--global-option" = ["--index-url=https://devpi.net/ibm/community/+simple/", "--extra-index-url=https://pypi.org/simple"] }
-environment = { PIP_INDEX_URL = "https://devpi.net/ibm/community/+simple/", PIP_EXTRA_INDEX_URL = "https://pypi.org/simple", PIP_FIND_LINKS = "" }
-test-command = "python -c 'import h5py; import numpy; print(f\"h5py {h5py.__version__} with NumPy {numpy.__version__}\")'"
 
 [tool.cibuildwheel.linux]
 environment-pass = [
