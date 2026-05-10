@@ -141,7 +141,7 @@ jobs:
           python3 -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_ARCHS_LINUX: ppc64le
-          CIBW_BUILD: "cp311-manylinux_ppc64le cp312-manylinux_ppc64le cp313-manylinux_ppc64le cp314-manylinux_ppc64le"
+          CIBW_BUILD: "cp310-manylinux_ppc64le cp311-manylinux_ppc64le cp312-manylinux_ppc64le cp313-manylinux_ppc64le cp314-manylinux_ppc64le"
           CIBW_BUILD_FRONTEND: "pip"
           # Configure pip to use IBM's devpi index for prebuilt NumPy wheels
           # PyPI is used as fallback for other dependencies
