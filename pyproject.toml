@@ -155,7 +155,7 @@ before-all = [
 ]
 before-build = [
     "pip install --upgrade pip setuptools wheel",
-    "pip install --only-binary numpy numpy>=1.25,<3'",
+    "pip install --only-binary numpy 'numpy>=1.25,<3'",
 ]
 before-test = [
     "pip config set global.index-url https://devpi.net/ibm/community/+simple/",
