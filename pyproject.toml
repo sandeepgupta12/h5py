@@ -145,7 +145,7 @@ test-command = "bash {project}/ci/cibw_test_command.sh {project} {wheel}"
 [[tool.cibuildwheel.overrides]]
 select = "cp3{10,11,12,13,14}-*linux_ppc64le"
 
-build-frontend = { name = "pip", args = ["--no-build-isolation", "--only-binary", "numpy"] }
+build-frontend = "legacy"
 
 before-all = [
     "pip config set global.index-url https://devpi.net/ibm/community/+simple/",
