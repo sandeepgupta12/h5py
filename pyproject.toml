@@ -127,7 +127,7 @@ wheels = [
 [tool.cibuildwheel]
 skip = [
     "cp310-win_arm64", # Skipped due to unavailability of Python binary and NumPy for Win-ARM64
-    "cp310-manylinux_ppc64le",
+    
 ]
 
 build-verbosity = 1
@@ -144,7 +144,7 @@ test-command = "bash {project}/ci/cibw_test_command.sh {project} {wheel}"
 # ppc64le-specific configuration
 # Uses IBM's devpi index for prebuilt NumPy wheels
 [[tool.cibuildwheel.overrides]]
-select = "cp3{11,12,13,14}-*linux_ppc64le"
+select = "cp3{10,11,12,13,14}-*linux_ppc64le"
 
 environment.PIP_NO_BUILD_ISOLATION = "1"
 build-frontend = { name = "pip", args = ["--only-binary", "numpy"] }
