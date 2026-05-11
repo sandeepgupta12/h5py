@@ -127,7 +127,6 @@ wheels = [
 [tool.cibuildwheel]
 skip = [
     "cp310-win_arm64", # Skipped due to unavailability of Python binary and NumPy for Win-ARM64
-    "cp310-manylinux_ppc64le", # NumPy not available for Python 3.10 on ppc64le in devpi
 ]
 
 build-verbosity = 1
