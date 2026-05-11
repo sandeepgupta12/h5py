@@ -150,7 +150,7 @@ environment.PIP_NO_BUILD_ISOLATION = "1"
 build-frontend = { name = "pip", args = ["--only-binary", "numpy"] }
 
 before-all = [
-    "pip config set global.index-url https://devpi.net/ibm/community/+simple/",
+    "pip config set global.index-url https://wheels.developerfirst.ibm.com/ppc64le/linux",
     "pip config set global.extra-index-url https://pypi.org/simple",
 ]
 before-build = [
@@ -158,7 +158,7 @@ before-build = [
     "pip install --only-binary numpy 'numpy>=1.25,<3'",
 ]
 before-test = [
-    "pip config set global.index-url https://devpi.net/ibm/community/+simple/",
+    "pip config set global.index-url https://wheels.developerfirst.ibm.com/ppc64le/linux",
     "pip config set global.extra-index-url https://pypi.org/simple",
 ]
 test-command = "python -c 'import h5py; import numpy; print(f\"h5py {h5py.__version__} with NumPy {numpy.__version__}\")'"
