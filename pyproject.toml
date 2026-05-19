@@ -156,7 +156,7 @@ before-all = [
 ]
 before-build = [
     "pip install --upgrade pip setuptools wheel",
-    "pip install --only-binary numpy --prefer-binary --platform manylinux_2_34_ppc64le 'numpy>=1.25,<3' || pip install --only-binary numpy 'numpy>=1.25,<3'",
+    "pip install --only-binary=:all: --platform manylinux_2_34_ppc64le --no-deps 'numpy>=1.25,<3' || pip install --only-binary numpy 'numpy>=1.25,<3'",
 ]
 before-test = [
     "pip config set global.index-url https://wheels.developerfirst.ibm.com/ppc64le/linux",
