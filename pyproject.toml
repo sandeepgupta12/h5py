@@ -143,6 +143,7 @@ test-command = "bash {project}/ci/cibw_test_command.sh {project} {wheel}"
 
 # ppc64le-specific configuration
 # Uses IBM's devpi index for prebuilt NumPy wheels
+# Configured to accept manylinux_2_34 wheels from IBM's repository
 [[tool.cibuildwheel.overrides]]
 select = "cp3{10,12,13,14}-*linux_ppc64le"
 
@@ -155,7 +156,7 @@ before-all = [
 ]
 before-build = [
     "pip install --upgrade pip setuptools wheel",
-    "pip install --only-binary numpy 'numpy>=1.25,<3'",
+    "pip install --only-binary numpy --prefer-binary --platform manylinux_2_34_ppc64le 'numpy>=1.25,<3' || pip install --only-binary numpy 'numpy>=1.25,<3'",
 ]
 before-test = [
     "pip config set global.index-url https://wheels.developerfirst.ibm.com/ppc64le/linux",
