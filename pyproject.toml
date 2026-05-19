@@ -134,7 +134,7 @@ build-verbosity = 1
 build-frontend = { name = "pip", args = ["--only-binary", "numpy"] }
 manylinux-x86_64-image = "ghcr.io/h5py/manylinux_2_28_x86_64-hdf5"
 manylinux-aarch64-image = "ghcr.io/h5py/manylinux_2_28_aarch64-hdf5"
-manylinux-ppc64le-image = "ghcr.io/h5py/manylinux_2_28_ppc64le-hdf5"
+manylinux-ppc64le-image = "manylinux_2_34"
 musllinux-x86_64-image = "ghcr.io/h5py/musllinux_1_2_x86_64-hdf5"
 musllinux-aarch64-image = "ghcr.io/h5py/musllinux_1_2_aarch64-hdf5"
 musllinux-ppc64le-image = "ghcr.io/h5py/musllinux_1_2_ppc64le-hdf5"
@@ -151,12 +151,13 @@ environment.PIP_NO_BUILD_ISOLATION = "1"
 build-frontend = { name = "pip", args = ["--only-binary", "numpy"] }
 
 before-all = [
+    "yum install -y hdf5-devel || dnf install -y hdf5-devel || apt-get update && apt-get install -y libhdf5-dev",
     "pip config set global.index-url https://wheels.developerfirst.ibm.com/ppc64le/linux",
     "pip config set global.extra-index-url https://pypi.org/simple",
 ]
 before-build = [
     "pip install --upgrade pip setuptools wheel",
-    "pip download --only-binary=:all: --platform manylinux_2_34_ppc64le --no-deps --dest /tmp/numpy_wheels 'numpy>=1.25,<3' && pip install /tmp/numpy_wheels/numpy-*.whl || pip install --only-binary numpy 'numpy>=1.25,<3'",
+    "pip install --only-binary numpy 'numpy>=1.25,<3'",
 ]
 before-test = [
     "pip config set global.index-url https://wheels.developerfirst.ibm.com/ppc64le/linux",
