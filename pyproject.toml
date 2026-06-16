@@ -155,6 +155,12 @@ before-all = [
     "pip config set global.extra-index-url https://pypi.org/simple",
 ]
 
+# Configure test environment to use IBM devpi for NumPy wheels
+before-test = [
+    "pip config set global.index-url https://wheels.developerfirst.ibm.com/ppc64le/linux",
+    "pip config set global.extra-index-url https://pypi.org/simple",
+]
+
 # Skip full test suite for PPC64LE to reduce build time
 # Only run basic import test to verify the wheel works
 test-skip = "*"
