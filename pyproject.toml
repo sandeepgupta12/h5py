@@ -156,9 +156,11 @@ before-all = [
 ]
 
 # Configure test environment to use IBM devpi for NumPy wheels
+# Force binary-only installation to prevent building from source
 before-test = [
     "pip config set global.index-url https://wheels.developerfirst.ibm.com/ppc64le/linux",
     "pip config set global.extra-index-url https://pypi.org/simple",
+    "pip config set global.only-binary numpy",
 ]
 
 # Skip full test suite for PPC64LE to reduce build time
