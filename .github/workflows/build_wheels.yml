@@ -126,14 +126,14 @@ jobs:
       - run: bash ./ci/triage_build.sh "${{ matrix.arch }}" "${{ github.event.pull_request.head.sha || github.sha }}"
 
       # Cache pip dependencies for ppc64le to speed up builds
-      - name: Cache pip dependencies (PPC64LE)
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v4.2.4
-        with:
-          path: ~/.cache/pip
-          key: pip-ppc64le-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            pip-ppc64le-${{ runner.os }}-
-        if: matrix.arch == 'ppc64le'
+      # - name: Cache pip dependencies (PPC64LE)
+      #   uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v4.2.4
+      #   with:
+      #     path: ~/.cache/pip
+      #     key: pip-ppc64le-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
+      #     restore-keys: |
+      #       pip-ppc64le-${{ runner.os }}-
+      #   if: matrix.arch == 'ppc64le'
 
       # Build wheels using cibuildwheel action (standard platforms)
       - uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e # v3.3.1
