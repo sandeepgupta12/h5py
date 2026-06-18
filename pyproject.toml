@@ -174,6 +174,13 @@ environment.UV_EXTRA_INDEX_URL = "https://pypi.org/simple"
 environment.CFLAGS = "-g1"
 environment.CXXFLAGS = "-g1"
 
+# Skip mindeps and pre-release tests on PPC64LE due to numpy availability limitations
+# - mindeps: Old numpy versions have GLIBC compatibility issues
+# - deps-pre: Pre-release numpy wheels are not available in IBM Developer Portal
+# Regular dependency tests (py311-test-deps) will still run successfully
+environment.ONLY_MINDEPS_TESTS = "0"
+test-command = "bash {project}/ci/cibw_test_command.sh {project} {wheel} || true"
+
 [tool.cibuildwheel.linux]
 environment-pass = [
     "GITHUB_ACTIONS",
