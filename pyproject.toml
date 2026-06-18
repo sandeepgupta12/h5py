@@ -164,6 +164,9 @@ before-all = [
 environment.PIP_INDEX_URL = "https://wheels.developerfirst.ibm.com/ppc64le/linux"
 environment.PIP_EXTRA_INDEX_URL = "https://pypi.org/simple"
 environment.PIP_ONLY_BINARY = "numpy"
+# Configure uv to use the same index (uv uses UV_INDEX instead of PIP_INDEX_URL)
+environment.UV_INDEX = "https://wheels.developerfirst.ibm.com/ppc64le/linux"
+environment.UV_EXTRA_INDEX_URL = "https://pypi.org/simple"
 
 # Optimize build flags for faster compilation on PPC64LE
 # Use minimal debug symbols (-g1) instead of full debug (-g) to reduce build time
