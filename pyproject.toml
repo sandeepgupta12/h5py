@@ -171,11 +171,6 @@ environment.PIP_ONLY_BINARY = "numpy"
 environment.CFLAGS = "-g1"
 environment.CXXFLAGS = "-g1"
 
-# Skip full test suite for PPC64LE to reduce build time
-# Only run basic import test to verify the wheel works
-test-skip = "*"
-test-command = "python -c 'import h5py; import numpy; print(f\"h5py {h5py.__version__} with NumPy {numpy.__version__}\"); import h5py.tests; print(\"Import successful!\")'"
-
 [tool.cibuildwheel.linux]
 environment-pass = [
     "GITHUB_ACTIONS",
