@@ -177,9 +177,11 @@ environment.CXXFLAGS = "-g1"
 # Skip mindeps and pre-release tests on PPC64LE due to numpy availability limitations
 # - mindeps: Old numpy versions have GLIBC compatibility issues
 # - deps-pre: Pre-release numpy wheels are not available in IBM Developer Portal
-# Regular dependency tests (py311-test-deps) will still run successfully
+# Regular dependency tests (py3XX-test-deps) will still run successfully
+# Setting ONLY_MINDEPS_TESTS=0 ensures only the main test suite runs
 environment.ONLY_MINDEPS_TESTS = "0"
-test-command = "bash {project}/ci/cibw_test_command.sh {project} {wheel} || true"
+# Remove || true to properly report test failures for the main test suite
+test-command = "bash {project}/ci/cibw_test_command.sh {project} {wheel}"
 
 [tool.cibuildwheel.linux]
 environment-pass = [
