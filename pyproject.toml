@@ -164,8 +164,8 @@ environment.PIP_EXTRA_INDEX_URL = "https://pypi.org/simple"
 environment.PIP_ONLY_BINARY = "numpy"
 
 # Use minimal debug symbols for faster compilation (consistent with other architectures)
-#environment.CFLAGS = "-g1"
-#environment.CXXFLAGS = "-g1"
+environment.CFLAGS = "-g1"
+environment.CXXFLAGS = "-g1"
 
 # Skip mindeps and pre-release tests on PPC64LE due to numpy availability limitations
 # - mindeps
