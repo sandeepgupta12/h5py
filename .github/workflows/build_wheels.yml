@@ -32,7 +32,7 @@ on:
   # Run on tags
   push:
     branches:
-      - master
+      - temp-pr-1707
     tags:
       - '*'
 
@@ -81,7 +81,7 @@ jobs:
             arch: arm64
           - os: macos-15-intel
             arch: x86_64
-          - os: ubuntu-24.04-ppc64le
+          - os: self-hosted
             arch: ppc64le
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -149,14 +149,6 @@ jobs:
 
       # Now actually build the wheels
       - uses: pypa/cibuildwheel@294735312765b09d24a2fbec22660ce817587d55 # v4.1.0
-        if: matrix.arch != 'ppc64le'
-
-      # Build wheels for ppc64le (config in pyproject.toml overrides)
-      - name: Build wheels for ppc64le
-        if: matrix.arch == 'ppc64le' && env.ENABLE_PPC64LE == 'true'
-        run: |
-          python3 -m pip install --upgrade pip setuptools wheel cibuildwheel
-          python3 -m cibuildwheel --output-dir wheelhouse
 
       - run: python ./ci/bundle_hdf5_whl.py wheelhouse
         if: runner.os == 'Windows'
